@@ -15,7 +15,7 @@ import shutil
 
 configs = {
     'download_dir': './tracks/',
-    'sync_download_dir': 'D:/music/',
+    'sync_download_dir': 'G:/MUSIC/spotify/',
     'diff_track_seconds_limit': 3,
     'append_search_term': '',
     'spotify': {
@@ -25,11 +25,25 @@ configs = {
     'playlist': {
         'spotify_parsed': [],
         'spotify': [
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
-            # 'spotify:user:s61ujhkdo0vujr22nvzigb2a1:playlist:7FsyL7IA5xIutS2ciOiTko',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5NTKApSVfxuiKFKGNrnnLm',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5kfIHgK2R4J00apbdw4IDI',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0SgbnYrhjHwGTiVE9iun9L',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7sFqi9CSJ2Bq4bGV7J6QrP',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
         ]
     }
 }
@@ -38,6 +52,7 @@ parser = argparse.ArgumentParser(description="Copy that shit")
 # parser.add_argument('-sync', '-s', action=search_youtube, nargs=0)
 # parser.add_argument("--add_playlist_from_user", help="echo the string you use here", action='store_true')
 parser.add_argument("--sync", help="Start the sync process", action='store_true')
+parser.add_argument("--drive_sync", help="Start the sync process", action='store_true')
 parser.add_argument("--verbose", help="get more output?", action='store_true')
 args = parser.parse_args()
 
@@ -213,12 +228,32 @@ def parse_spotify_playlist_config():
         })
 
 
-def process_diff_files(diff, target, dest):
+def process_diff_files(diff, source, dest):
     files_to_remove = diff['files_to_remove']
     files_to_add = diff['files_to_add']
     for r in files_to_remove:
         os.remove(dest + r)
         p('Removed file: ' + r)
+
+    t = len(files_to_add)
+    for f in files_to_add:
+        d = dest + f
+        dirs = d[:d.rfind('/')]
+        if not os.path.exists(dirs):
+            p('Creating folder ' + dirs)
+            os.makedirs(dirs)
+        if not os.path.exists(dest + f):
+            p('Copying file ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
+            shutil.copyfile(source + f, dest + f)
+        else:
+            p('Already exists ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
+        t -= 1
+
+def remove_dir_if_empty(a):
+    files = os.listdir(a)
+    if len(files) == 0:
+        d = a[:a.rfind('/')]
+        os.removedirs(d)
 
 
 def diff_files(files_dir, compare_dir, files=None):
@@ -259,7 +294,7 @@ def diff_files(files_dir, compare_dir, files=None):
         'files_to_remove': files_to_remove,
         'files_to_add': files_to_add,
     }
-    print(o)
+    # print(o)
     return o
 
 
@@ -353,7 +388,6 @@ def process_playlist():
                 video_path = download_video(selected_result['video_id'], track['path'])
                 p('could not download video, selecting different one')
 
-
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
@@ -383,8 +417,16 @@ def process_playlist():
 
     p('Syncing files with ' + configs['sync_download_dir'])
     drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
-    process_diff_files(drive_diff_files)
+    process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
+
+
+def sync_drive():
+    drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
+    process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
 
 
 if args.sync:
     process_playlist()
+
+if args.drive_sync:
+    sync_drive()
