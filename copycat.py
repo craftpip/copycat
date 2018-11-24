@@ -64,7 +64,11 @@ def search_youtube(text_to_search):
     for vid in vid_list:
         title = vid.attrib['title']
         href = vid.attrib['href']
-        des = vid.attrib['aria-describedby']
+        if 'aria-describedby' in vid.attrib:
+            des = vid.attrib['aria-describedby']
+        else:
+            continue
+
         duration = d('#' + des).contents()[0]
         if duration.find('Duration') != -1:
             duration_parsed = duration[duration.find(':') + 2:-1]
@@ -214,7 +218,7 @@ def process_diff_files(diff, target, dest):
     files_to_add = diff['files_to_add']
     for r in files_to_remove:
         os.remove(dest + r)
-        print(r)
+        p('Removed file: ' + r)
 
 
 def diff_files(files_dir, compare_dir, files=None):
@@ -315,26 +319,41 @@ def process_playlist():
             p2(pre_text + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
             p2(pre_text + ': got ' + str(len(results)) + ' results')
+
             # compare the first 5 tracks ? and check for the lowest difference in duration
 
-            lowest_index = 0
-            lowest_diff = 1000
-            for index, r in enumerate(results):
-                diff = abs(int(r['duration_seconds']) - int(track['duration']))
-                if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
-                    lowest_diff = diff
-                    lowest_index = index
+            def select_result(results):
+                lowest_index = 0
+                lowest_diff = 1000
+                for index, r in enumerate(results):
+                    diff = abs(int(r['duration_seconds']) - int(track['duration']))
+                    if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
+                        lowest_diff = diff
+                        lowest_index = index
+
+                p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
+                p2(pre_text + ': selecting = "' + results[lowest_index]['title'] + '"')
+                return lowest_index
 
             if len(results) == 0:
                 p2(pre_text + ': results were not found')
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            selected_result = results[lowest_index]
-            p2(pre_text + ': selecting = "' + selected_result['title'] + '"')
-            p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
-            p2(pre_text + ': downloading audio')
-            video_path = download_video(selected_result['video_id'], track['path'])
+            result_index = select_result(results)
+            selected_result = results[result_index]
+            try:
+                p2(pre_text + ': downloading audio')
+                video_path = download_video(selected_result['video_id'], track['path'])
+            except:
+                # one more try.
+                results.pop(result_index)
+                result_index = select_result(results)
+                selected_result = results[result_index]
+                video_path = download_video(selected_result['video_id'], track['path'])
+                p('could not download video, selecting different one')
+
+
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
@@ -355,12 +374,16 @@ def process_playlist():
 
         total_playlist_cd -= 1
 
-    p('Checking for deleted files')
+    p('Checking for removed files')
     diffed_files = diff_files(configs['download_dir'], configs['download_dir'], files=diff_file_paths)
 
-    process_diff_files(diffed_files, configs['download_dir'], configs['download_dir'])
+    if len(diffed_files['files_to_remove']):
+        p('Removing files')
+        process_diff_files(diffed_files, configs['download_dir'], configs['download_dir'])
 
-    # diff_files(configs['download_dir'], configs['sync_download_dir'])
+    p('Syncing files with ' + configs['sync_download_dir'])
+    drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
+    process_diff_files(drive_diff_files)
 
 
 if args.sync:
