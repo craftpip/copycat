@@ -244,18 +244,19 @@ def process_playlist():
         for track_index, track in enumerate(pl['tracks']):
 
             p(hr)
-            p2(pl['name'] + ' | ' + track['name'])
+            pre_text = pl['name'] + ' | ' + track['name']
+            p2(pre_text)
             file_path = folder_path + track['path']
-            p2(pl['name'] + ' | ' + track['name'] + ': output to: ' + file_path)
+            p2(pre_text + ': output to: ' + file_path)
             if os.path.exists(file_path):
-                p2(pl['name'] + ' | ' + track['name'] + ': file already exists, skipping')
+                p2(pre_text + ': file already exists, skipping')
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            search_term = ' intitle:' + track['artist'] + ' - intitle:' + track['name'] + ' ' + configs['append_search_term']
-            p2(pl['name'] + ' | ' + track['name'] + ': searching yt for ' + search_term)
+            search_term = ' "' + track['artist'] + '" - intitle:' + track['name'] + ' ' + configs['append_search_term']
+            p2(pre_text + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
-            p2(pl['name'] + ' | ' + track['name'] + ': got ' + str(len(results)) + ' results')
+            p2(pre_text + ': got ' + str(len(results)) + ' results')
             # compare the first 5 tracks ? and check for the lowest difference in duration
 
             lowest_index = 0
@@ -266,23 +267,28 @@ def process_playlist():
                     lowest_diff = diff
                     lowest_index = index
 
+            if len(results) == 0:
+                p2(pre_text + ': results were not found')
+                total_tracks_cd = total_tracks_cd - 1
+                continue
+
             selected_result = results[lowest_index]
-            p2(pl['name'] + ' | ' + track['name'] + ': selecting = "' + selected_result['title'] + '"')
-            p2(pl['name'] + ' | ' + track['name'] + ': length diff = ' + str(lowest_diff) + ' seconds')
-            p2(pl['name'] + ' | ' + track['name'] + ': downloading audio')
+            p2(pre_text + ': selecting = "' + selected_result['title'] + '"')
+            p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
+            p2(pre_text + ': downloading audio')
             video_path = download_video(selected_result['video_id'], track['path'])
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
             # def in_thread():
-            p2(pl['name'] + ' | ' + track['name'] + ': converting to mp3')
+            p2(pre_text + ': converting to mp3')
             convert_to_mp3(video_path, file_path)
             time.sleep(1)
             os.remove(video_path)
-            p2(pl['name'] + ' | ' + track['name'] + ': downloading album art')
-            p2(pl['name'] + ' | ' + track['name'] + ': adding meta-data to mp3')
+            p2(pre_text + ': downloading album art')
+            p2(pre_text + ': adding meta-data to mp3')
             tag_mp3(file_path, track)
-            p2(pl['name'] + ' | ' + track['name'] + ': saved to ' + file_path)
+            p2(pre_text + ': saved to ' + file_path)
             # global total_tracks_cd
             total_tracks_cd = total_tracks_cd - 1
 
