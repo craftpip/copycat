@@ -83,32 +83,9 @@ def search_youtube(text_to_search):
     return video_list
 
 
-# videos = search_youtube("pumped up kicks lyrics")
-
-
 def sort_key(val):
     return val['duration_seconds']
 
-
-# for i in videos:
-#     print(i['duration_seconds'])
-
-# videos.sort(key=sort_key);
-# print(repr(videos))
-
-# playlist = sp.user_playlists('wiks69g0l47jxtgm7z1fwcuff') # its me
-# print(playlist['items'])
-#
-# for i in playlist['items']:
-#     print(i['name'])
-
-# import pytube
-
-
-#
-# yt = pytube.YouTube('https://www.youtube.com/watch?v=n06H7OcPd-g')
-#
-# yt.streams.first().download('./')
 
 def spotify_get_playlist_info(playlist):
     print(playlist)
@@ -128,16 +105,11 @@ def convert_to_mp3(source, target):
     source = source.replace('/', '\\')
     target = target.replace('/', '\\')
 
-    # subprocess.check_call([
-    #     ''
-    # ], stdout=subprocess.DEVNULL)
+    fnull = open(os.devnull, 'w')
+    subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
 
-    FNULL = open(os.devnull, 'w')
-    subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
-
-    # output = os.system(
+    # os.system(
     #     '".\\ffmpeg\\bin\\ffmpeg.exe -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
-    # return output
 
 
 def tag_mp3(file_path, track):
@@ -158,10 +130,6 @@ def tag_mp3(file_path, track):
 def clean_filename(filename):
     whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-')
     filename = ''.join(filter(whitelist.__contains__, filename))
-
-    # for c in r'[]/\;,><&*:%=+@!#^()|?^\\'"":
-    #     filename = filename.replace(c, '')
-    #
     filename = filename.lower().strip()
     return filename
 
@@ -274,9 +242,6 @@ def process_playlist():
     for pl in parsed_playlist:
         folder_path = configs['download_dir'] + pl['path']
         for track_index, track in enumerate(pl['tracks']):
-            # track_indx = str(track_index + 1)
-            # while len(track_indx) < 3:
-            #     track_indx = '0' + track_indx
 
             p(hr)
             p2(pl['name'] + ' | ' + track['name'])
@@ -287,12 +252,12 @@ def process_playlist():
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            search_term = ' intitle:' + track['artist'] + ' - intitle:' + track['name'] + ' ' + configs['append_search_term'];
+            search_term = ' intitle:' + track['artist'] + ' - intitle:' + track['name'] + ' ' + configs['append_search_term']
             p2(pl['name'] + ' | ' + track['name'] + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
             p2(pl['name'] + ' | ' + track['name'] + ': got ' + str(len(results)) + ' results')
-            # p2(pl['name'] + track['name]  +': checking for closest match')
-            # compare the first 5 tracks ? and check for the lowest different in duration
+            # compare the first 5 tracks ? and check for the lowest difference in duration
+
             lowest_index = 0
             lowest_diff = 1000
             for index, r in enumerate(results):
