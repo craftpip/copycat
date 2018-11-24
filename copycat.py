@@ -11,11 +11,13 @@ import requests
 from pyquery import PyQuery as pq
 import threading
 import time
+import shutil
 
 configs = {
     'download_dir': './tracks/',
+    'sync_download_dir': 'D:/music/',
     'diff_track_seconds_limit': 3,
-    'append_search_term': 'lyrics',
+    'append_search_term': '',
     'spotify': {
         'client_id': 'ea59966691f546a38c800e765338cf31',
         'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
@@ -23,10 +25,11 @@ configs = {
     'playlist': {
         'spotify_parsed': [],
         'spotify': [
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
-            'spotify:user:s61ujhkdo0vujr22nvzigb2a1:playlist:7FsyL7IA5xIutS2ciOiTko',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
+            # 'spotify:user:s61ujhkdo0vujr22nvzigb2a1:playlist:7FsyL7IA5xIutS2ciOiTko',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5NTKApSVfxuiKFKGNrnnLm',
         ]
     }
 }
@@ -206,6 +209,56 @@ def parse_spotify_playlist_config():
         })
 
 
+def process_diff_files(diff, target, dest):
+    files_to_remove = diff['files_to_remove']
+    files_to_add = diff['files_to_add']
+    for r in files_to_remove:
+        os.remove(dest + r)
+        print(r)
+
+
+def diff_files(files_dir, compare_dir, files=None):
+    dirs = os.listdir(compare_dir)
+
+    if files is None:
+        files = []
+        f_dirs = os.listdir(files_dir)
+        for d in f_dirs:
+            f_files = os.listdir(files_dir + d)
+            for f2 in f_files:
+                files.append(d + '/' + f2)
+
+    files_to_remove = []
+    files_to_add = []
+
+    for l in dirs:
+        folder = l + '/'
+        disk_files = os.listdir(compare_dir + folder)
+
+        for df in disk_files:
+            file = folder + df
+            found = False
+            for f in files:
+                if file == f:
+                    found = True
+                    break
+
+            if not found:
+                files_to_remove.append(file)
+
+    for f in files:
+        exists = os.path.exists(compare_dir + f)
+        if not exists:
+            files_to_add.append(f)
+
+    o = {
+        'files_to_remove': files_to_remove,
+        'files_to_add': files_to_add,
+    }
+    print(o)
+    return o
+
+
 def process_playlist():
     hr = '============================================================================'
     p('Starting sync')
@@ -238,6 +291,8 @@ def process_playlist():
     def p2(s):
         p('pl:' + str(total_playlist_cd) + '/' + str(total_playlist) + '-tracks:' + str(total_tracks_cd) + '/' + str(total_tracks) + ' - ' + s)
 
+    diff_file_paths = []
+
     p2('Starting..')
     for pl in parsed_playlist:
         folder_path = configs['download_dir'] + pl['path']
@@ -247,13 +302,16 @@ def process_playlist():
             pre_text = pl['name'] + ' | ' + track['name']
             p2(pre_text)
             file_path = folder_path + track['path']
+
+            diff_file_paths.append(pl['path'] + track['path'])
+
             p2(pre_text + ': output to: ' + file_path)
             if os.path.exists(file_path):
                 p2(pre_text + ': file already exists, skipping')
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            search_term = ' "' + track['artist'] + '" - intitle:' + track['name'] + ' ' + configs['append_search_term']
+            search_term = track['album'] + ' ' + track['artist'] + ' ' + track['name'] + ' ' + configs['append_search_term']
             p2(pre_text + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
             p2(pre_text + ': got ' + str(len(results)) + ' results')
@@ -296,6 +354,13 @@ def process_playlist():
             # t.start()
 
         total_playlist_cd -= 1
+
+    p('Checking for deleted files')
+    diffed_files = diff_files(configs['download_dir'], configs['download_dir'], files=diff_file_paths)
+
+    process_diff_files(diffed_files, configs['download_dir'], configs['download_dir'])
+
+    # diff_files(configs['download_dir'], configs['sync_download_dir'])
 
 
 if args.sync:
