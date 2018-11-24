@@ -1,0 +1,331 @@
+import spotipy
+import urllib.request
+from spotipy.oauth2 import SpotifyClientCredentials
+import os
+import argparse
+import youtube_dl
+import subprocess
+import eyed3
+import urllib
+import requests
+from pyquery import PyQuery as pq
+import threading
+import time
+
+configs = {
+    'download_dir': './tracks/',
+    'diff_track_seconds_limit': 3,
+    'append_search_term': 'lyrics',
+    'spotify': {
+        'client_id': 'ea59966691f546a38c800e765338cf31',
+        'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
+    },
+    'playlist': {
+        'spotify_parsed': [],
+        'spotify': [
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
+            'spotify:user:s61ujhkdo0vujr22nvzigb2a1:playlist:7FsyL7IA5xIutS2ciOiTko',
+        ]
+    }
+}
+
+parser = argparse.ArgumentParser(description="Copy that shit")
+# parser.add_argument('-sync', '-s', action=search_youtube, nargs=0)
+# parser.add_argument("--add_playlist_from_user", help="echo the string you use here", action='store_true')
+parser.add_argument("--sync", help="Start the sync process", action='store_true')
+parser.add_argument("--verbose", help="get more output?", action='store_true')
+args = parser.parse_args()
+
+client_credentials_manager = SpotifyClientCredentials(configs['spotify']['client_id'],
+                                                      configs['spotify']['client_secret'])
+sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
+
+
+# Printer
+def p(str):
+    print(str)
+    # pp = pprint.PrettyPrinter(indent=2)
+    # pp.pprint(str)
+
+
+def search_youtube(text_to_search):
+    query = urllib.parse.quote(text_to_search)
+    url = "https://www.youtube.com/results?search_query=" + query
+    response = urllib.request.urlopen(url)
+    html = response.read()
+    d = pq(html)
+    vid_list = d('.yt-uix-tile-link')
+    video_list = []
+    for vid in vid_list:
+        title = vid.attrib['title']
+        href = vid.attrib['href']
+        des = vid.attrib['aria-describedby']
+        duration = d('#' + des).contents()[0]
+        if duration.find('Duration') != -1:
+            duration_parsed = duration[duration.find(':') + 2:-1]
+            # not parsing hour long stuff right now: example: 1:01:49
+            if len(duration_parsed) > 5:
+                duration_parsed = '59:59'
+
+            duration_in_seconds = int(duration_parsed[int(duration_parsed.find(':')) + 1:])
+            duration_in_minutes = int(duration_parsed[:duration_parsed.find(':')])
+            total_duration_in_seconds = duration_in_seconds + (duration_in_minutes * 60)
+            video_id = href[href.find('?v=') + 3:]
+            video_list.append({
+                'title': title,
+                'href': href,
+                'video_id': video_id,
+                'duration': duration_parsed,
+                'duration_seconds': total_duration_in_seconds
+            })
+    return video_list
+
+
+# videos = search_youtube("pumped up kicks lyrics")
+
+
+def sort_key(val):
+    return val['duration_seconds']
+
+
+# for i in videos:
+#     print(i['duration_seconds'])
+
+# videos.sort(key=sort_key);
+# print(repr(videos))
+
+# playlist = sp.user_playlists('wiks69g0l47jxtgm7z1fwcuff') # its me
+# print(playlist['items'])
+#
+# for i in playlist['items']:
+#     print(i['name'])
+
+# import pytube
+
+
+#
+# yt = pytube.YouTube('https://www.youtube.com/watch?v=n06H7OcPd-g')
+#
+# yt.streams.first().download('./')
+
+def spotify_get_playlist_info(playlist):
+    print(playlist)
+
+
+def download_video(video_id, file_name):
+    ydl_opts = {
+        'format': '251/best',
+        'outtmpl': './' + file_name + '.webm',
+    }
+    a = youtube_dl.YoutubeDL(ydl_opts)
+    v = a.download(['https://www.youtube.com/watch?v=' + video_id])
+    return './' + file_name + '.webm'
+
+
+def convert_to_mp3(source, target):
+    source = source.replace('/', '\\')
+    target = target.replace('/', '\\')
+
+    # subprocess.check_call([
+    #     ''
+    # ], stdout=subprocess.DEVNULL)
+
+    FNULL = open(os.devnull, 'w')
+    subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=FNULL, stderr=subprocess.STDOUT)
+
+    # output = os.system(
+    #     '".\\ffmpeg\\bin\\ffmpeg.exe -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
+    # return output
+
+
+def tag_mp3(file_path, track):
+    f = eyed3.load(file_path)
+    if f.tag is None:
+        f.initTag()
+
+    content = requests.get(track['album_art']).content
+    f.tag.images.set(3, content, 'image/jpeg')
+    f.tag.artist = track['artist']
+    f.tag.album = track['album']
+    f.tag.album_artist = track['artist']
+    f.tag.title = track['name']
+    f.tag.track_num = track['number']
+    f.tag.save()
+
+
+def clean_filename(filename):
+    whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-')
+    filename = ''.join(filter(whitelist.__contains__, filename))
+
+    # for c in r'[]/\;,><&*:%=+@!#^()|?^\\'"":
+    #     filename = filename.replace(c, '')
+    #
+    filename = filename.lower().strip()
+    return filename
+
+
+def get_spotify_playlist(spotify_playlist):
+    playlist = []
+
+    for playlist_info in spotify_playlist:
+        info = sp.user_playlist(playlist_info['user'], playlist_info['playlist_id']);
+
+        playlist_single_info = {
+            'name': info['name'],
+            'path': clean_filename(info['name']) + '/',
+            'tracks': [],
+            'playlist_id': info['id'],
+            'type': 'spotify',
+            'user_id': info['owner']['id'],
+            'user_name': info['owner']['display_name']
+        }
+
+        playlist.append(playlist_single_info)
+
+    return playlist
+
+
+def get_spotify_tracks(user_id, playlist_id):
+    """
+    tracks
+    :param user_id:
+    :param playlist_id:
+    :return:
+    """
+    # @todo implement tracks gathering for more than 100 tracks, pagination pending
+    tracks = sp.user_playlist_tracks(user_id, playlist_id, None, 100, 0)
+    parsed_tracks = []
+    for t in tracks['items']:
+        track_name = t['track']['name']
+        artist_name = t['track']['artists'][0]['name']
+        track = {
+            'name': track_name,
+            'artist': artist_name,
+            'album': t['track']['album']['name'],
+            'path': clean_filename(artist_name + '-' + track_name) + '.mp3',
+            'number': t['track']['track_number'],
+            'id': t['track']['id'],
+            'duration': int(t['track']['duration_ms']) / 1000,
+            'disc_number': str(t['track']['disc_number']),
+            'artist_id': t['track']['artists'][0]['id'],
+            'release_date': t['track']['album']['release_date'],
+        }
+
+        images = t['track']['album']['images']
+        if len(images) > 1:
+            image = t['track']['album']['images'][1]['url']
+        else:
+            image = t['track']['album']['images'][0]['url']
+
+        track['album_art'] = image
+
+        parsed_tracks.append(track)
+
+    return parsed_tracks
+
+
+def parse_spotify_playlist_config():
+    playlist = configs['playlist']['spotify']
+
+    for pl in playlist:
+        user = pl[pl.find('user:') + 5:pl.find('playlist:') - 1]
+        pl_id = pl[pl.find('playlist:') + 9:]
+        configs['playlist']['spotify_parsed'].append({
+            'user': user,
+            'playlist_id': pl_id
+        })
+
+
+def process_playlist():
+    hr = '============================================================================'
+    p('Starting sync')
+    parse_spotify_playlist_config()
+    p('Download dir: ' + configs['download_dir'])
+
+    p('Getting playlists')
+    playlist = get_spotify_playlist(configs['playlist']['spotify_parsed'])
+    parsed_playlist = []
+
+    total_playlist = len(playlist)
+    total_playlist_cd = total_playlist
+    total_tracks = 0
+    total_tracks_cd = 0
+    p('Found ' + str(total_playlist) + ' playlists')
+
+    for pl in playlist:
+        p(hr)
+        p('Getting tracks from ' + pl['name'])
+        tracks = get_spotify_tracks(pl['user_id'], pl['playlist_id'])
+        total_tracks += len(tracks)
+        p('Got ' + str(len(tracks)) + ' tracks from ' + pl['name'])
+        pl['tracks'] = tracks
+        parsed_playlist.append(pl)
+
+    p(hr)
+    p('Playlist scan complete, found ' + str(total_tracks) + ' total tracks')
+    total_tracks_cd = total_tracks
+
+    def p2(s):
+        p('pl:' + str(total_playlist_cd) + '/' + str(total_playlist) + '-tracks:' + str(total_tracks_cd) + '/' + str(total_tracks) + ' - ' + s)
+
+    p2('Starting..')
+    for pl in parsed_playlist:
+        folder_path = configs['download_dir'] + pl['path']
+        for track_index, track in enumerate(pl['tracks']):
+            # track_indx = str(track_index + 1)
+            # while len(track_indx) < 3:
+            #     track_indx = '0' + track_indx
+
+            p(hr)
+            p2(pl['name'] + ' | ' + track['name'])
+            file_path = folder_path + track['path']
+            p2(pl['name'] + ' | ' + track['name'] + ': output to: ' + file_path)
+            if os.path.exists(file_path):
+                p2(pl['name'] + ' | ' + track['name'] + ': file already exists, skipping')
+                total_tracks_cd = total_tracks_cd - 1
+                continue
+
+            search_term = ' intitle:' + track['artist'] + ' - intitle:' + track['name'] + ' ' + configs['append_search_term'];
+            p2(pl['name'] + ' | ' + track['name'] + ': searching yt for ' + search_term)
+            results = search_youtube(search_term)
+            p2(pl['name'] + ' | ' + track['name'] + ': got ' + str(len(results)) + ' results')
+            # p2(pl['name'] + track['name]  +': checking for closest match')
+            # compare the first 5 tracks ? and check for the lowest different in duration
+            lowest_index = 0
+            lowest_diff = 1000
+            for index, r in enumerate(results):
+                diff = abs(int(r['duration_seconds']) - int(track['duration']))
+                if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
+                    lowest_diff = diff
+                    lowest_index = index
+
+            selected_result = results[lowest_index]
+            p2(pl['name'] + ' | ' + track['name'] + ': selecting = "' + selected_result['title'] + '"')
+            p2(pl['name'] + ' | ' + track['name'] + ': length diff = ' + str(lowest_diff) + ' seconds')
+            p2(pl['name'] + ' | ' + track['name'] + ': downloading audio')
+            video_path = download_video(selected_result['video_id'], track['path'])
+            if not os.path.exists(folder_path):
+                os.makedirs(folder_path)
+
+            # def in_thread():
+            p2(pl['name'] + ' | ' + track['name'] + ': converting to mp3')
+            convert_to_mp3(video_path, file_path)
+            time.sleep(1)
+            os.remove(video_path)
+            p2(pl['name'] + ' | ' + track['name'] + ': downloading album art')
+            p2(pl['name'] + ' | ' + track['name'] + ': adding meta-data to mp3')
+            tag_mp3(file_path, track)
+            p2(pl['name'] + ' | ' + track['name'] + ': saved to ' + file_path)
+            # global total_tracks_cd
+            total_tracks_cd = total_tracks_cd - 1
+
+            # t = threading.Thread(target=in_thread)
+            # t.start()
+
+        total_playlist_cd -= 1
+
+
+if args.sync:
+    process_playlist()
