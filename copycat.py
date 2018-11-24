@@ -252,10 +252,12 @@ def process_diff_files(diff, source, dest):
             p('Already exists ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
         t -= 1
 
+
 def remove_dir_if_empty(a):
     files = os.listdir(a)
     if len(files) == 0:
         d = a[:a.rfind('/')]
+        p('Removing folder because its empty ' + d)
         os.removedirs(d)
 
 
