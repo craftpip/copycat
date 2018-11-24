@@ -232,7 +232,10 @@ def process_diff_files(diff, source, dest):
     files_to_remove = diff['files_to_remove']
     files_to_add = diff['files_to_add']
     for r in files_to_remove:
-        os.remove(dest + r)
+        d = dest + r
+        os.remove(d)
+        dirs = d[:d.rfind('/')]
+        remove_dir_if_empty(dirs)
         p('Removed file: ' + r)
 
     t = len(files_to_add)
