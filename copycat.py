@@ -17,6 +17,7 @@ configs = {
     'download_dir': './tracks/',
     'sync_download_dir': 'G:/MUSIC/spotify/',
     'diff_track_seconds_limit': 3,
+    'sleep_timer_minutes': 15,
     'append_search_term': '',
     'spotify': {
         'client_id': 'ea59966691f546a38c800e765338cf31',
@@ -44,6 +45,10 @@ configs = {
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
+            'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
+            'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
+            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
+            'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
         ]
     }
 }
@@ -51,9 +56,10 @@ configs = {
 parser = argparse.ArgumentParser(description="Copy that shit")
 # parser.add_argument('-sync', '-s', action=search_youtube, nargs=0)
 # parser.add_argument("--add_playlist_from_user", help="echo the string you use here", action='store_true')
-parser.add_argument("--sync", help="Start the sync process", action='store_true')
-parser.add_argument("--drive_sync", help="Start the sync process", action='store_true')
-parser.add_argument("--verbose", help="get more output?", action='store_true')
+parser.add_argument("-s", help="sync the playlist and with target drive", action='store_true')
+parser.add_argument("-ds", help="sync with drive only", action='store_true')
+parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
+parser.add_argument("-v", help="get more output?", action='store_true')
 args = parser.parse_args()
 
 client_credentials_manager = SpotifyClientCredentials(configs['spotify']['client_id'],
@@ -190,11 +196,13 @@ def get_spotify_tracks(user_id, playlist_id):
     for t in tracks['items']:
         track_name = t['track']['name']
         artist_name = t['track']['artists'][0]['name']
+        path = clean_filename(artist_name + '-' + track_name)
+
         track = {
             'name': track_name,
             'artist': artist_name,
             'album': t['track']['album']['name'],
-            'path': clean_filename(artist_name + '-' + track_name) + '.mp3',
+            'path': path + '.mp3',
             'number': t['track']['track_number'],
             'id': t['track']['id'],
             'duration': int(t['track']['duration_ms']) / 1000,
@@ -242,7 +250,7 @@ def process_diff_files(diff, source, dest):
     for f in files_to_add:
         d = dest + f
         dirs = d[:d.rfind('/')]
-        if not os.path.exists(dirs):
+        if not os.path.exists(dirs + '/'):
             p('Creating folder ' + dirs)
             os.makedirs(dirs)
         if not os.path.exists(dest + f):
@@ -251,6 +259,8 @@ def process_diff_files(diff, source, dest):
         else:
             p('Already exists ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
         t -= 1
+
+    p('Files are in sync!')
 
 
 def remove_dir_if_empty(a):
@@ -424,14 +434,19 @@ def process_playlist():
     drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
     process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
 
+    if args.r:
+        p('Restarting sync in ' + configs['sleep_timer_minutes'] + ' minutes')
+        time.sleep(configs['sleep_timer_minutes'] * 60)
+        process_playlist()
+
 
 def sync_drive():
     drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
     process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
 
 
-if args.sync:
+if args.s:
     process_playlist()
 
-if args.drive_sync:
+if args.ds:
     sync_drive()
