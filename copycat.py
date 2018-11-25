@@ -139,7 +139,7 @@ def convert_to_mp3(source, target):
     # subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
 
     os.system(
-        '".\\ffmpeg\\bin\\ffmpeg.exe -threads 6  -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
+        '".\\ffmpeg\\bin\\ffmpeg.exe -hide_banner -loglevel info -threads 4  -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
 
 
 def tag_mp3(file_path, track):
@@ -216,7 +216,7 @@ def get_spotify_tracks(user_id, playlist_id):
         }
 
         images = t['track']['album']['images']
-        if len(images) == 2:
+        if len(images) > 1:
             image = t['track']['album']['images'][1]['url']
         elif len(images) == 1:
             image = t['track']['album']['images'][0]['url']
@@ -371,7 +371,7 @@ def process_playlist():
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            search_term = track['album'] + ' ' + track['artist'] + ' ' + track['name'] + ' ' + configs['append_search_term']
+            search_term = track['artist'] + ' "' + track['name'] + '" ' + configs['append_search_term']
             p2(pre_text + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
             p2(pre_text + ': got ' + str(len(results)) + ' results')
