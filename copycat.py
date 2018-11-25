@@ -15,7 +15,9 @@ import shutil
 
 configs = {
     'download_dir': './tracks/',
-    'sync_download_dir': 'G:/MUSIC/spotify/',
+    'sync_download_dir': [
+        'G:/MUSIC/spotify/'
+    ],
     'diff_track_seconds_limit': 3,
     'sleep_timer_minutes': 15,
     'append_search_term': '',
@@ -430,9 +432,7 @@ def process_playlist():
         p('Removing files')
         process_diff_files(diffed_files, configs['download_dir'], configs['download_dir'])
 
-    p('Syncing files with ' + configs['sync_download_dir'])
-    drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
-    process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
+    sync_drive()
 
     if args.r:
         p('Restarting sync in ' + configs['sleep_timer_minutes'] + ' minutes')
@@ -441,8 +441,12 @@ def process_playlist():
 
 
 def sync_drive():
-    drive_diff_files = diff_files(configs['download_dir'], configs['sync_download_dir'])
-    process_diff_files(drive_diff_files, configs['download_dir'], configs['sync_download_dir'])
+    for drive in configs['sync_download_dir']:
+        if os.path.exists(drive):
+            drive_diff_files = diff_files(configs['download_dir'], drive)
+            process_diff_files(drive_diff_files, configs['download_dir'], drive)
+        else:
+            p('The path ' + drive + ' does not exists atm, skipping')
 
 
 if args.s:
