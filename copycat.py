@@ -443,6 +443,7 @@ def process_playlist():
 def sync_drive():
     for drive in configs['sync_download_dir']:
         if os.path.exists(drive):
+            p('Syncing files with ' + drive)
             drive_diff_files = diff_files(configs['download_dir'], drive)
             process_diff_files(drive_diff_files, configs['download_dir'], drive)
         else:
