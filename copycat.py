@@ -135,11 +135,11 @@ def convert_to_mp3(source, target):
     source = source.replace('/', '\\')
     target = target.replace('/', '\\')
 
-    fnull = open(os.devnull, 'w')
-    subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
+    # fnull = open(os.devnull, 'w')
+    # subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
 
-    # os.system(
-    #     '".\\ffmpeg\\bin\\ffmpeg.exe -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
+    os.system(
+        '".\\ffmpeg\\bin\\ffmpeg.exe -threads 6  -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
 
 
 def tag_mp3(file_path, track):
@@ -147,8 +147,10 @@ def tag_mp3(file_path, track):
     if f.tag is None:
         f.initTag()
 
-    content = requests.get(track['album_art']).content
-    f.tag.images.set(3, content, 'image/jpeg')
+    if track['album_art'] is not None:
+        content = requests.get(track['album_art']).content
+        f.tag.images.set(3, content, 'image/jpeg')
+
     f.tag.artist = track['artist']
     f.tag.album = track['album']
     f.tag.album_artist = track['artist']
@@ -214,10 +216,12 @@ def get_spotify_tracks(user_id, playlist_id):
         }
 
         images = t['track']['album']['images']
-        if len(images) > 1:
+        if len(images) == 2:
             image = t['track']['album']['images'][1]['url']
-        else:
+        elif len(images) == 1:
             image = t['track']['album']['images'][0]['url']
+        else:
+            image = None
 
         track['album_art'] = image
 
