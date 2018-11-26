@@ -51,6 +51,14 @@ configs = {
             'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
             'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
             'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
+            'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
+            'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
+            'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
+            'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
+            'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
+            'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
+            'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
+            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
         ]
     }
 }
@@ -139,7 +147,7 @@ def convert_to_mp3(source, target):
     # subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
 
     os.system(
-        '".\\ffmpeg\\bin\\ffmpeg.exe -hide_banner -loglevel info -threads 4  -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
+        '".\\ffmpeg\\bin\\ffmpeg.exe -hide_banner -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
 
 
 def tag_mp3(file_path, track):
@@ -371,7 +379,7 @@ def process_playlist():
                 total_tracks_cd = total_tracks_cd - 1
                 continue
 
-            search_term = track['artist'] + ' "' + track['name'] + '" ' + configs['append_search_term']
+            search_term = '"' + track['artist'] + '" ' + track['name'] + ' ' + configs['append_search_term']
             p2(pre_text + ': searching yt for ' + search_term)
             results = search_youtube(search_term)
             p2(pre_text + ': got ' + str(len(results)) + ' results')
@@ -439,7 +447,7 @@ def process_playlist():
     sync_drive()
 
     if args.r:
-        p('Restarting sync in ' + configs['sleep_timer_minutes'] + ' minutes')
+        p('Restarting sync in ' + str(configs['sleep_timer_minutes']) + ' minutes')
         time.sleep(configs['sleep_timer_minutes'] * 60)
         process_playlist()
 
