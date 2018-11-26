@@ -12,8 +12,10 @@ from pyquery import PyQuery as pq
 import threading
 import time
 import shutil
+import sys
 
 configs = {
+    'threads': 6,  # garbage output!, but that works faster
     'download_dir': './tracks/',
     'sync_download_dir': [
         'G:/MUSIC/spotify/'
@@ -59,13 +61,17 @@ configs = {
             'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
             'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
             'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
+            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
+            'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
+            'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
+            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
+            'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
+            'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
         ]
     }
 }
 
 parser = argparse.ArgumentParser(description="Copy that shit")
-# parser.add_argument('-sync', '-s', action=search_youtube, nargs=0)
-# parser.add_argument("--add_playlist_from_user", help="echo the string you use here", action='store_true')
 parser.add_argument("-s", help="sync the playlist and with target drive", action='store_true')
 parser.add_argument("-ds", help="sync with drive only", action='store_true')
 parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
@@ -256,9 +262,9 @@ def process_diff_files(diff, source, dest):
     for r in files_to_remove:
         d = dest + r
         os.remove(d)
+        p('Removed file: ' + d)
         dirs = d[:d.rfind('/')]
         remove_dir_if_empty(dirs)
-        p('Removed file: ' + r)
 
     t = len(files_to_add)
     for f in files_to_add:
@@ -281,8 +287,8 @@ def remove_dir_if_empty(a):
     files = os.listdir(a)
     if len(files) == 0:
         d = a[:a.rfind('/')]
-        p('Removing folder because its empty ' + d)
-        os.removedirs(d)
+        p('Removing folder because its empty ' + a)
+        os.removedirs(a)
 
 
 def diff_files(files_dir, compare_dir, files=None):
@@ -327,6 +333,17 @@ def diff_files(files_dir, compare_dir, files=None):
     return o
 
 
+running_threads = 0
+total_playlist_cd = 0
+total_playlist = 0
+total_tracks_cd = 0
+total_tracks = 0
+
+
+def p2(s):
+    p('pl:' + str(total_playlist_cd) + '/' + str(total_playlist) + '-tracks:' + str(total_tracks_cd) + '/' + str(total_tracks) + ' - ' + s)
+
+
 def process_playlist():
     hr = '============================================================================'
     p('Starting sync')
@@ -337,6 +354,10 @@ def process_playlist():
     playlist = get_spotify_playlist(configs['playlist']['spotify_parsed'])
     parsed_playlist = []
 
+    global total_playlist
+    global total_playlist_cd
+    global total_tracks
+    global total_tracks_cd
     total_playlist = len(playlist)
     total_playlist_cd = total_playlist
     total_tracks = 0
@@ -356,86 +377,99 @@ def process_playlist():
     p('Playlist scan complete, found ' + str(total_tracks) + ' total tracks')
     total_tracks_cd = total_tracks
 
-    def p2(s):
-        p('pl:' + str(total_playlist_cd) + '/' + str(total_playlist) + '-tracks:' + str(total_tracks_cd) + '/' + str(total_tracks) + ' - ' + s)
-
     diff_file_paths = []
 
     p2('Starting..')
+
     for pl in parsed_playlist:
         folder_path = configs['download_dir'] + pl['path']
         for track_index, track in enumerate(pl['tracks']):
 
-            p(hr)
-            pre_text = pl['name'] + ' | ' + track['name']
-            p2(pre_text)
-            file_path = folder_path + track['path']
+            def process_track(pl, folder_path, track, track_index):
+                global total_tracks_cd
+                global running_threads
+                running_threads += 1
+                p(hr)
+                pre_text = pl['name'] + ' | ' + track['name']
+                p2(pre_text)
+                file_path = folder_path + track['path']
+                diff_file_paths.append(pl['path'] + track['path'])
+                p2(pre_text + ': output to: ' + file_path)
+                if os.path.exists(file_path):
+                    p2(pre_text + ': file already exists, skipping')
+                    total_tracks_cd = total_tracks_cd - 1
+                    running_threads -= 1
+                    sys.exit()
 
-            diff_file_paths.append(pl['path'] + track['path'])
+                search_term = '"' + track['artist'] + '" ' + track['name'] + ' ' + configs['append_search_term']
+                p2(pre_text + ': searching yt for ' + search_term)
+                results = search_youtube(search_term)
+                p2(pre_text + ': got ' + str(len(results)) + ' results')
 
-            p2(pre_text + ': output to: ' + file_path)
-            if os.path.exists(file_path):
-                p2(pre_text + ': file already exists, skipping')
-                total_tracks_cd = total_tracks_cd - 1
-                continue
+                # compare the first 5 tracks ? and check for the lowest difference in duration
+                def select_result(re):
+                    lowest_index = 0
+                    lowest_diff = 1000
+                    for index, r in enumerate(re):
+                        diff = abs(int(r['duration_seconds']) - int(track['duration']))
+                        if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
+                            lowest_diff = diff
+                            lowest_index = index
 
-            search_term = '"' + track['artist'] + '" ' + track['name'] + ' ' + configs['append_search_term']
-            p2(pre_text + ': searching yt for ' + search_term)
-            results = search_youtube(search_term)
-            p2(pre_text + ': got ' + str(len(results)) + ' results')
+                    p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
+                    p2(pre_text + ': selecting = "' + re[lowest_index]['title'] + '"')
+                    return lowest_index
 
-            # compare the first 5 tracks ? and check for the lowest difference in duration
+                if len(results) == 0:
+                    p2(pre_text + ': results were not found')
+                    total_tracks_cd = total_tracks_cd - 1
+                    running_threads -= 1
+                    sys.exit()
 
-            def select_result(results):
-                lowest_index = 0
-                lowest_diff = 1000
-                for index, r in enumerate(results):
-                    diff = abs(int(r['duration_seconds']) - int(track['duration']))
-                    if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
-                        lowest_diff = diff
-                        lowest_index = index
-
-                p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
-                p2(pre_text + ': selecting = "' + results[lowest_index]['title'] + '"')
-                return lowest_index
-
-            if len(results) == 0:
-                p2(pre_text + ': results were not found')
-                total_tracks_cd = total_tracks_cd - 1
-                continue
-
-            result_index = select_result(results)
-            selected_result = results[result_index]
-            try:
-                p2(pre_text + ': downloading audio')
-                video_path = download_video(selected_result['video_id'], track['path'])
-            except:
-                # one more try.
-                results.pop(result_index)
                 result_index = select_result(results)
                 selected_result = results[result_index]
-                video_path = download_video(selected_result['video_id'], track['path'])
-                p('could not download video, selecting different one')
+                try:
+                    p2(pre_text + ': downloading audio')
+                    video_path = download_video(selected_result['video_id'], track['path'])
+                except:
+                    # one more try.
+                    p2('failed to download, one more try?')
+                    results.pop(result_index)
+                    result_index = select_result(results)
+                    selected_result = results[result_index]
+                    p('could not download video, selecting different one')
+                    try:
+                        video_path = download_video(selected_result['video_id'], track['path'])
+                    except:
+                        p2('failed to download the song again, giving up!')
+                        running_threads -= 1
+                        sys.exit()
 
-            if not os.path.exists(folder_path):
-                os.makedirs(folder_path)
+                if not os.path.exists(folder_path):
+                    os.makedirs(folder_path)
 
-            # def in_thread():
-            p2(pre_text + ': converting to mp3')
-            convert_to_mp3(video_path, file_path)
-            time.sleep(1)
-            os.remove(video_path)
-            p2(pre_text + ': downloading album art')
-            p2(pre_text + ': adding meta-data to mp3')
-            tag_mp3(file_path, track)
-            p2(pre_text + ': saved to ' + file_path)
-            # global total_tracks_cd
-            total_tracks_cd = total_tracks_cd - 1
+                # def in_thread():
+                p2(pre_text + ': converting to mp3')
+                convert_to_mp3(video_path, file_path)
+                time.sleep(.1)
+                os.remove(video_path)
+                p2(pre_text + ': downloading album art')
+                p2(pre_text + ': adding meta-data to mp3')
+                tag_mp3(file_path, track)
+                p2(pre_text + ': saved to ' + file_path)
+                total_tracks_cd = total_tracks_cd - 1
+                running_threads -= 1
 
-            # t = threading.Thread(target=in_thread)
-            # t.start()
+            while running_threads > configs['threads']:
+                time.sleep(.01)
+
+            t = threading.Thread(target=process_track, args=(pl, folder_path, track, track_index))
+            t.start()
 
         total_playlist_cd -= 1
+
+    while running_threads != 0:
+        time.sleep(.5)
 
     p('Checking for removed files')
     diffed_files = diff_files(configs['download_dir'], configs['download_dir'], files=diff_file_paths)
