@@ -29,7 +29,7 @@ Download the repo
 ## Basic Usage
 
 ```cmd
-python copycat.py --sync
+python copycat.py -s
 ```
 
 ## Authors
