@@ -15,7 +15,7 @@ import shutil
 import sys
 
 configs = {
-    'threads': 6,  # garbage output!, but that works faster
+    'threads': 5,  # garbage output!, but that works faster
     'download_dir': './tracks/',
     'sync_download_dir': [
         'G:/MUSIC/spotify/'
@@ -76,6 +76,7 @@ parser.add_argument("-s", help="sync the playlist and with target drive", action
 parser.add_argument("-ds", help="sync with drive only", action='store_true')
 parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
 parser.add_argument("-v", help="get more output?", action='store_true')
+parser.add_argument("-d", help="For debug", action='store_true')
 args = parser.parse_args()
 
 client_credentials_manager = SpotifyClientCredentials(configs['spotify']['client_id'],
@@ -170,7 +171,7 @@ def tag_mp3(file_path, track):
     f.tag.album_artist = track['artist']
     f.tag.title = track['name']
     f.tag.track_num = track['number']
-    f.tag.save()
+    f.tag.save(None, (2, 3, 0))
 
 
 def clean_filename(filename):
@@ -433,15 +434,15 @@ def process_playlist():
                     video_path = download_video(selected_result['video_id'], track['path'])
                 except:
                     # one more try.
-                    p2('failed to download, one more try?')
+                    p2(pre_text + ':failed to download, one more try?')
                     results.pop(result_index)
                     result_index = select_result(results)
                     selected_result = results[result_index]
-                    p('could not download video, selecting different one')
+                    p(pre_text + ':could not download video, selecting different one')
                     try:
                         video_path = download_video(selected_result['video_id'], track['path'])
                     except:
-                        p2('failed to download the song again, giving up!')
+                        p2(pre_text + ':failed to download the song again, giving up!')
                         running_threads -= 1
                         sys.exit()
 
@@ -495,6 +496,10 @@ def sync_drive():
         else:
             p('The path ' + drive + ' does not exists atm, skipping')
 
+
+if args.d:
+    print('ok')
+    tag_mp3('./tracks/1/airbag-colours.mp3', {})
 
 if args.s:
     process_playlist()
