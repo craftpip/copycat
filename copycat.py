@@ -15,20 +15,21 @@ import shutil
 import sys
 
 configs = {
-    'threads': 5,  # garbage output!, but that works faster
-    'download_dir': './tracks/',
-    'sync_download_dir': [
+    'threads': 5,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'download_dir': 'D:/Music/',  # copy the playlists in here
+    'sync_download_dir': [  # list of my sync directories, if you ha
         'G:/MUSIC/spotify/'
     ],
-    'diff_track_seconds_limit': 3,
-    'sleep_timer_minutes': 15,
-    'append_search_term': '',
-    'spotify': {
+    'tag_mp3': True,  # sure, why would you not?
+    'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
+    'sleep_timer_minutes': 15,  # use -r and restart copycat after 15 minutes
+    'append_search_term': 'official',  # append some terms for search
+    'spotify': {  # you know what
         'client_id': 'ea59966691f546a38c800e765338cf31',
         'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
     },
     'playlist': {
-        'spotify_parsed': [],
+        'spotify_parsed': [],  # for internal use, dont worry
         'spotify': [
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5kfIHgK2R4J00apbdw4IDI',
@@ -49,24 +50,25 @@ configs = {
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
-            'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
-            'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
-            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
-            'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
-            'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
-            'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
-            'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
-            'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
-            'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
-            'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
-            'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
-            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
-            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
-            'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
-            'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
-            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
-            'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
-            'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
+            # 'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
+            # 'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
+            # 'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
+            # 'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
+            # 'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
+            # 'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
+            # 'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
+            # 'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
+            # 'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
+            # 'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
+            # 'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
+            # 'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
+            # 'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
+            # 'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
+            # 'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
+            # 'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
+            # 'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
+            # 'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
         ]
     }
 }
@@ -166,6 +168,9 @@ def tag_mp3(file_path, track):
         content = requests.get(track['album_art']).content
         f.tag.images.set(3, content, 'image/jpeg')
 
+    # f.info
+
+    f.tag.comments.set(track['search_term'] + ' = ' + track['selected_result'])
     f.tag.artist = track['artist']
     f.tag.album = track['album']
     f.tag.album_artist = track['artist']
@@ -187,9 +192,13 @@ def get_spotify_playlist(spotify_playlist):
     for playlist_info in spotify_playlist:
         info = sp.user_playlist(playlist_info['user'], playlist_info['playlist_id']);
 
+        owner_name = info['owner']['display_name']
+        p('Got playlist from ' + owner_name + ' ' + info['name'])
+        path = clean_filename(owner_name[:6] + '-' + info['name'])
+
         playlist_single_info = {
             'name': info['name'],
-            'path': clean_filename(info['name']) + '/',
+            'path': path + '/',
             'tracks': [],
             'playlist_id': info['id'],
             'type': 'spotify',
@@ -215,12 +224,24 @@ def get_spotify_tracks(user_id, playlist_id):
     for t in tracks['items']:
         track_name = t['track']['name']
         artist_name = t['track']['artists'][0]['name']
+        album_name = t['track']['album']['name']
         path = clean_filename(artist_name + '-' + track_name)
 
+        # split the artist name and track name add + before them, all of the words must be there in the youtube video title.
+        main_term = artist_name + ' ' + track_name
+        composed_terms = []
+        for term in main_term.split(' '):
+            if len(term) > 1:
+                composed_terms.append('+' + term)
+
+        composed_term = ' '.join(composed_terms)
+
+        search_term = composed_term + ' ' + configs['append_search_term']
         track = {
             'name': track_name,
+            'search_term': search_term,
             'artist': artist_name,
-            'album': t['track']['album']['name'],
+            'album': album_name,
             'path': path + '.mp3',
             'number': t['track']['track_number'],
             'id': t['track']['id'],
@@ -345,11 +366,26 @@ def p2(s):
     p('pl:' + str(total_playlist_cd) + '/' + str(total_playlist) + '-tracks:' + str(total_tracks_cd) + '/' + str(total_tracks) + ' - ' + s)
 
 
+def clean_temp():
+    p('Cleaning temp')
+    files = os.listdir('./')
+    for f in files:
+        if f.find('.webm') > -1:
+            p('Removing temp file: ' + f)
+            os.remove('./' + f)
+
+
 def process_playlist():
     hr = '============================================================================'
     p('Starting sync')
     parse_spotify_playlist_config()
     p('Download dir: ' + configs['download_dir'])
+
+    if not os.path.exists(configs['download_dir']):
+        p('The download directory does not exists')
+        exit(1)
+
+    clean_temp()
 
     p('Getting playlists')
     playlist = get_spotify_playlist(configs['playlist']['spotify_parsed'])
@@ -391,21 +427,21 @@ def process_playlist():
                 global running_threads
                 running_threads += 1
                 p(hr)
-                pre_text = pl['name'] + ' | ' + track['name']
+                pre_text = pl['name'][:10] + ' | ' + track['name']
                 p2(pre_text)
                 file_path = folder_path + track['path']
                 diff_file_paths.append(pl['path'] + track['path'])
-                p2(pre_text + ': output to: ' + file_path)
+                p2(str(running_threads) + 'T | ' + pre_text + ': output to: ' + file_path)
                 if os.path.exists(file_path):
-                    p2(pre_text + ': file already exists, skipping')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': file already exists, skipping')
                     total_tracks_cd = total_tracks_cd - 1
                     running_threads -= 1
                     sys.exit()
 
-                search_term = '"' + track['artist'] + '" ' + track['name'] + ' ' + configs['append_search_term']
-                p2(pre_text + ': searching yt for ' + search_term)
+                search_term = track['search_term']
+                p2(str(running_threads) + 'T | ' + pre_text + ': searching yt for ' + search_term)
                 results = search_youtube(search_term)
-                p2(pre_text + ': got ' + str(len(results)) + ' results')
+                p2(str(running_threads) + 'T | ' + pre_text + ': got ' + str(len(results)) + ' results')
 
                 # compare the first 5 tracks ? and check for the lowest difference in duration
                 def select_result(re):
@@ -417,12 +453,12 @@ def process_playlist():
                             lowest_diff = diff
                             lowest_index = index
 
-                    p2(pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
-                    p2(pre_text + ': selecting = "' + re[lowest_index]['title'] + '"')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': selecting = "' + re[lowest_index]['title'] + '"')
                     return lowest_index
 
                 if len(results) == 0:
-                    p2(pre_text + ': results were not found')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': results were not found')
                     total_tracks_cd = total_tracks_cd - 1
                     running_threads -= 1
                     sys.exit()
@@ -430,34 +466,40 @@ def process_playlist():
                 result_index = select_result(results)
                 selected_result = results[result_index]
                 try:
-                    p2(pre_text + ': downloading audio')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': downloading audio')
                     video_path = download_video(selected_result['video_id'], track['path'])
                 except:
                     # one more try.
-                    p2(pre_text + ':failed to download, one more try?')
+                    p2(str(running_threads) + 'T | ' + pre_text + ':failed to download, one more try?')
                     results.pop(result_index)
                     result_index = select_result(results)
                     selected_result = results[result_index]
-                    p(pre_text + ':could not download video, selecting different one')
+                    p(str(running_threads) + 'T | ' + pre_text + ':could not download video, selecting different one')
                     try:
                         video_path = download_video(selected_result['video_id'], track['path'])
                     except:
-                        p2(pre_text + ':failed to download the song again, giving up!')
+                        p2(str(running_threads) + 'T | ' + pre_text + ':failed to download the song again, giving up!')
                         running_threads -= 1
                         sys.exit()
+
+                # this was the selected result
+                track['selected_result'] = selected_result['video_id'] + ' ' + selected_result['title']
 
                 if not os.path.exists(folder_path):
                     os.makedirs(folder_path)
 
                 # def in_thread():
-                p2(pre_text + ': converting to mp3')
+                p2(str(running_threads) + 'T | ' + pre_text + ': converting to mp3')
                 convert_to_mp3(video_path, file_path)
                 time.sleep(.1)
                 os.remove(video_path)
-                p2(pre_text + ': downloading album art')
-                p2(pre_text + ': adding meta-data to mp3')
-                tag_mp3(file_path, track)
-                p2(pre_text + ': saved to ' + file_path)
+
+                if configs['tag_mp3']:
+                    p2(str(running_threads) + 'T | ' + pre_text + ': downloading album art')
+                    p2(str(running_threads) + 'T | ' + pre_text + ': adding meta-data to mp3')
+                    tag_mp3(file_path, track)
+                    p2(str(running_threads) + 'T | ' + pre_text + ': saved to ' + file_path)
+
                 total_tracks_cd = total_tracks_cd - 1
                 running_threads -= 1
 
@@ -465,6 +507,7 @@ def process_playlist():
                 time.sleep(.01)
 
             t = threading.Thread(target=process_track, args=(pl, folder_path, track, track_index))
+            t.daemon = True
             t.start()
 
         total_playlist_cd -= 1
@@ -499,7 +542,7 @@ def sync_drive():
 
 if args.d:
     print('ok')
-    tag_mp3('./tracks/1/airbag-colours.mp3', {})
+    # tag_mp3('./tracks/1/airbag-colours.mp3', {})
 
 if args.s:
     process_playlist()
