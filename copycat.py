@@ -15,7 +15,7 @@ import shutil
 import sys
 
 configs = {
-    'threads': 5,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'threads': 10,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
     'download_dir': 'D:/Music/',  # copy the playlists in here
     'sync_download_dir': [  # list of my sync directories, if you ha
         'G:/MUSIC/spotify/'
@@ -23,7 +23,7 @@ configs = {
     'tag_mp3': True,  # sure, why would you not?
     'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
     'sleep_timer_minutes': 15,  # use -r and restart copycat after 15 minutes
-    'append_search_term': 'official',  # append some terms for search
+    'append_search_term': '',  # append some terms for search
     'spotify': {  # you know what
         'client_id': 'ea59966691f546a38c800e765338cf31',
         'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
@@ -31,25 +31,25 @@ configs = {
     'playlist': {
         'spotify_parsed': [],  # for internal use, dont worry
         'spotify': [
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5kfIHgK2R4J00apbdw4IDI',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0SgbnYrhjHwGTiVE9iun9L',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7sFqi9CSJ2Bq4bGV7J6QrP',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0SgbnYrhjHwGTiVE9iun9L',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7sFqi9CSJ2Bq4bGV7J6QrP',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
+            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
             # 'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
             # 'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
             # 'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
@@ -440,10 +440,30 @@ def process_playlist():
 
                 search_term = track['search_term']
                 p2(str(running_threads) + 'T | ' + pre_text + ': searching yt for ' + search_term)
-                results = search_youtube(search_term)
-                p2(str(running_threads) + 'T | ' + pre_text + ': got ' + str(len(results)) + ' results')
+                all_results = search_youtube(search_term)
+                p2(str(running_threads) + 'T | ' + pre_text + ': got ' + str(len(all_results)) + ' results')
 
-                # compare the first 5 tracks ? and check for the lowest difference in duration
+                # have to remove unrelated results!!!
+                # we are selecting wrong tracks because of the diff.
+                # sometimes the diff of unrelated songs match exactly.
+                terms = track['artist'] + ' ' + track['name']
+                terms_list = terms.split(' ')
+                results = []
+                for r in all_results:
+                    unrelated = False
+                    r2 = clean_filename(r['title']).lower()
+                    for t in terms_list:
+                        t2 = clean_filename(t).lower()
+                        if len(t) > 1 and r2.find(t2) == -1:
+                            unrelated = True
+                            break
+                        # detect edge cases here live, instrumental
+
+
+                    if not unrelated:
+                        results.append(r)
+
+                # compare the first X no. of  tracks ? and check for the lowest difference in duration
                 def select_result(re):
                     lowest_index = 0
                     lowest_diff = 1000
@@ -455,7 +475,7 @@ def process_playlist():
 
                     p2(str(running_threads) + 'T | ' + pre_text + ': length diff = ' + str(lowest_diff) + ' seconds')
                     p2(str(running_threads) + 'T | ' + pre_text + ': selecting = "' + re[lowest_index]['title'] + '"')
-                    return lowest_index
+                    return [lowest_index, lowest_diff]
 
                 if len(results) == 0:
                     p2(str(running_threads) + 'T | ' + pre_text + ': results were not found')
@@ -463,7 +483,9 @@ def process_playlist():
                     running_threads -= 1
                     sys.exit()
 
-                result_index = select_result(results)
+                sr = select_result(results)
+                result_index = sr[0]
+                result_diff = sr[1]
                 selected_result = results[result_index]
                 try:
                     p2(str(running_threads) + 'T | ' + pre_text + ': downloading audio')
@@ -472,7 +494,9 @@ def process_playlist():
                     # one more try.
                     p2(str(running_threads) + 'T | ' + pre_text + ':failed to download, one more try?')
                     results.pop(result_index)
-                    result_index = select_result(results)
+                    sr = select_result(results)
+                    result_index = sr[0]
+                    result_diff = sr[1]
                     selected_result = results[result_index]
                     p(str(running_threads) + 'T | ' + pre_text + ':could not download video, selecting different one')
                     try:
@@ -483,7 +507,7 @@ def process_playlist():
                         sys.exit()
 
                 # this was the selected result
-                track['selected_result'] = selected_result['video_id'] + ' ' + selected_result['title']
+                track['selected_result'] = selected_result['video_id'] + ' ' + selected_result['title'] + ' I:' + str(result_index) + ' D:' + str(result_diff)
 
                 if not os.path.exists(folder_path):
                     os.makedirs(folder_path)
