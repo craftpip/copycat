@@ -13,6 +13,7 @@ import threading
 import time
 import shutil
 import sys
+from bs4 import BeautifulSoup
 
 configs = {
     'threads': 10,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
@@ -20,10 +21,16 @@ configs = {
     'sync_download_dir': [  # list of my sync directories, if you ha
         'G:/MUSIC/spotify/'
     ],
+    'song_selection': {
+        'edge_cases': ['live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert', 'karaoke'],  # download anything except this, only if the required song does not contain these words.
+        'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
+        'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
+        'append_search_term': '',  # append some terms for search
+    },
+    'youtube_username': None,  # Cant download ? try this
+    'youtube_password': None,
     'tag_mp3': True,  # sure, why would you not?
-    'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
     'sleep_timer_minutes': 15,  # use -r and restart copycat after 15 minutes
-    'append_search_term': '',  # append some terms for search
     'spotify': {  # you know what
         'client_id': 'ea59966691f546a38c800e765338cf31',
         'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
@@ -31,44 +38,44 @@ configs = {
     'playlist': {
         'spotify_parsed': [],  # for internal use, dont worry
         'spotify': [
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5kfIHgK2R4J00apbdw4IDI',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0SgbnYrhjHwGTiVE9iun9L',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7sFqi9CSJ2Bq4bGV7J6QrP',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
-            # 'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
-            # 'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
-            # 'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
-            # 'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
-            # 'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
-            # 'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
-            # 'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
-            # 'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
-            # 'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
-            # 'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
-            # 'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
-            # 'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
-            # 'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
-            # 'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
-            # 'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
-            # 'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
-            # 'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
-            # 'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
-            # 'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0SgbnYrhjHwGTiVE9iun9L',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7sFqi9CSJ2Bq4bGV7J6QrP',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
+            'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
+            'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
+            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
+            'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
+            'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
+            'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
+            'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
+            'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
+            'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
+            'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
+            'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
+            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
+            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
+            'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
+            'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
+            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
+            'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
+            'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
         ]
     }
 }
@@ -96,37 +103,69 @@ def p(str):
 def search_youtube(text_to_search):
     query = urllib.parse.quote(text_to_search)
     url = "https://www.youtube.com/results?search_query=" + query
-    response = urllib.request.urlopen(url)
+
+    try:
+        response = urllib.request.urlopen(url)
+    except Exception as e:
+        print(e)
+        pass
+
     html = response.read()
-    d = pq(html)
-    vid_list = d('.yt-uix-tile-link')
+
+    page = BeautifulSoup(html, features='lxml')
+    vid_list = page.find_all('div', attrs={'class': 'yt-lockup-content'})
+
+    # d = pq(html)
+    # vid_list = d('.yt-lockup-content')
     video_list = []
     for vid in vid_list:
-        title = vid.attrib['title']
-        href = vid.attrib['href']
-        if 'aria-describedby' in vid.attrib:
-            des = vid.attrib['aria-describedby']
-        else:
+
+        title_link = vid.findChild('a', attrs={'class': 'yt-uix-tile-link'}, recursive=True)
+        if title_link is None:
             continue
 
-        duration = d('#' + des).contents()[0]
-        if duration.find('Duration') != -1:
-            duration_parsed = duration[duration.find(':') + 2:-1]
-            # not parsing hour long stuff right now: example: 1:01:49
-            if len(duration_parsed) > 5:
-                duration_parsed = '59:59'
+        title = title_link.attrs['title']
+        href = title_link.attrs['href']
 
-            duration_in_seconds = int(duration_parsed[int(duration_parsed.find(':')) + 1:])
-            duration_in_minutes = int(duration_parsed[:duration_parsed.find(':')])
-            total_duration_in_seconds = duration_in_seconds + (duration_in_minutes * 60)
-            video_id = href[href.find('?v=') + 3:]
-            video_list.append({
-                'title': title,
-                'href': href,
-                'video_id': video_id,
-                'duration': duration_parsed,
-                'duration_seconds': total_duration_in_seconds
-            })
+        # title = vid.('a', attrs={'class': 'yt-uix-tile-link'}).attrs['title']
+        # title = vid.find('a', attrs={'class': 'yt-uix-tile-link'}).attrs['href']
+        # title = vid.attrib['title']
+        # href = vid.attrib['href']
+        # if 'aria-describedby' in vid.attrib:
+        #     des = vid.attrib['aria-describedby']
+        # else:
+        #     continue
+
+        duration = vid.findChild('span', attrs={'class': 'accessible-description'}, recursive=True).text
+        channel_name = vid.findChild('a', attrs={'class': 'yt-uix-sessionlink'}, recursive=True).text
+        video_description_el = vid.findChild('div', attrs={'class': 'yt-lockup-description'}, recursive=True)
+        video_description = ''
+        if video_description_el is not None:
+            video_description = video_description_el.text
+
+        # duration = d('#' + des).contents()[0]
+
+        if duration.find('Duration') == -1:
+            continue
+
+        duration_parsed = duration[duration.find(':') + 2:-1]
+        # not parsing hour long stuff right now: example: 1:01:49
+        if len(duration_parsed) > 5:
+            duration_parsed = '59:59'
+
+        duration_in_seconds = int(duration_parsed[int(duration_parsed.find(':')) + 1:])
+        duration_in_minutes = int(duration_parsed[:duration_parsed.find(':')])
+        total_duration_in_seconds = duration_in_seconds + (duration_in_minutes * 60)
+        video_id = href[href.find('?v=') + 3:]
+        video_list.append({
+            'title': title,
+            'channel': channel_name,
+            'description': video_description,
+            'href': href,
+            'video_id': video_id,
+            'duration': duration_parsed,
+            'duration_seconds': total_duration_in_seconds
+        })
     return video_list
 
 
@@ -143,6 +182,11 @@ def download_video(video_id, file_name):
         'format': '251/best',
         'outtmpl': './' + file_name + '.webm',
     }
+    if configs['youtube_username'] is not None:
+        ydl_opts['username'] = configs['youtube_username']
+    if configs['youtube_password'] is not None:
+        ydl_opts['password'] = configs['youtube_password']
+
     a = youtube_dl.YoutubeDL(ydl_opts)
     v = a.download(['https://www.youtube.com/watch?v=' + video_id])
     return './' + file_name + '.webm'
@@ -230,13 +274,18 @@ def get_spotify_tracks(user_id, playlist_id):
         # split the artist name and track name add + before them, all of the words must be there in the youtube video title.
         main_term = artist_name + ' ' + track_name
         composed_terms = []
+        term_index = 0
         for term in main_term.split(' '):
+            term_index += 1
             if len(term) > 1:
-                composed_terms.append('+' + term)
+                if term_index < 5:
+                    composed_terms.append('"' + term + '"')  # make strict search for first 5 words
+                else:
+                    composed_terms.append('+' + term + '')  # not so strict search for later words
 
         composed_term = ' '.join(composed_terms)
 
-        search_term = composed_term + ' ' + configs['append_search_term']
+        search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
         track = {
             'name': track_name,
             'search_term': search_term,
@@ -376,7 +425,7 @@ def clean_temp():
 
 
 def process_playlist():
-    hr = '============================================================================'
+    hr = '-------------'
     p('Starting sync')
     parse_spotify_playlist_config()
     p('Download dir: ' + configs['download_dir'])
@@ -428,7 +477,7 @@ def process_playlist():
                 running_threads += 1
                 p(hr)
                 pre_text = pl['name'][:10] + ' | ' + track['name']
-                p2(pre_text)
+                p2(str(running_threads) + 'T | ' + pre_text)
                 file_path = folder_path + track['path']
                 diff_file_paths.append(pl['path'] + track['path'])
                 p2(str(running_threads) + 'T | ' + pre_text + ': output to: ' + file_path)
@@ -446,19 +495,43 @@ def process_playlist():
                 # have to remove unrelated results!!!
                 # we are selecting wrong tracks because of the diff.
                 # sometimes the diff of unrelated songs match exactly.
-                terms = track['artist'] + ' ' + track['name']
+                terms = clean_filename(track['artist'] + ' ' + track['name'])
                 terms_list = terms.split(' ')
+                required_matched_terms = []
+                for t in terms_list:
+                    if len(t) > 1:
+                        required_matched_terms.append(t)
+
                 results = []
+                required_matches = len(required_matched_terms)
                 for r in all_results:
+                    matches = 0
+                    search_in = r['title'] + ' ' + r['channel'] + ' ' + r['description']
                     unrelated = False
-                    r2 = clean_filename(r['title']).lower()
+                    r2 = clean_filename(search_in).lower()
                     for t in terms_list:
                         t2 = clean_filename(t).lower()
-                        if len(t) > 1 and r2.find(t2) == -1:
+                        if len(t) > 1 and r2.find(t2) != -1:
+                            matches += 1
+
+                    if required_matches < 5 and matches != required_matches:
+                        unrelated = True
+                    elif required_matches >= 5:
+                        # if a song has a long name, considering words beyond 5 are long,
+                        # then percent will be calculated, more than n% will qualify
+                        required_words_to_matches = configs['song_selection']['min_percent_threshold'] * required_matches / 100
+                        if matches < round(required_words_to_matches):
+                            unrelated = True
+
+                        # match_percent = matches * 100 / required_matches
+                        # if match_percent < configs['song_selection']['min_percent_threshold']:  # matches less than 60 percent will disqualify
+
+                    # detect edge cases here live, instrumental etc
+                    edge_cases = configs['song_selection']['edge_cases']
+                    for e in edge_cases:
+                        if r2.find(e) != -1 and terms.find(e) == -1:
                             unrelated = True
                             break
-                        # detect edge cases here live, instrumental
-
 
                     if not unrelated:
                         results.append(r)
@@ -469,7 +542,7 @@ def process_playlist():
                     lowest_diff = 1000
                     for index, r in enumerate(re):
                         diff = abs(int(r['duration_seconds']) - int(track['duration']))
-                        if diff < lowest_diff and index < configs['diff_track_seconds_limit']:
+                        if diff < lowest_diff and index < configs['song_selection']['diff_track_seconds_limit']:
                             lowest_diff = diff
                             lowest_index = index
 
@@ -527,7 +600,7 @@ def process_playlist():
                 total_tracks_cd = total_tracks_cd - 1
                 running_threads -= 1
 
-            while running_threads > configs['threads']:
+            while running_threads > configs['threads'] - 1:
                 time.sleep(.01)
 
             t = threading.Thread(target=process_track, args=(pl, folder_path, track, track_index))
@@ -536,8 +609,10 @@ def process_playlist():
 
         total_playlist_cd -= 1
 
+    p('Waiting for threads to finish')
     while running_threads != 0:
-        time.sleep(.5)
+        print('.', end='')
+        time.sleep(1)
 
     p('Checking for removed files')
     diffed_files = diff_files(configs['download_dir'], configs['download_dir'], files=diff_file_paths)
@@ -566,6 +641,7 @@ def sync_drive():
 
 if args.d:
     print('ok')
+    results = search_youtube('+Cocainejesus +She')
     # tag_mp3('./tracks/1/airbag-colours.mp3', {})
 
 if args.s:
