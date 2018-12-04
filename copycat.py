@@ -1,3 +1,4 @@
+import random
 import spotipy
 import urllib.request
 from spotipy.oauth2 import SpotifyClientCredentials
@@ -5,6 +6,7 @@ import os
 import argparse
 import youtube_dl
 import subprocess
+from youtube import API
 import eyed3
 import urllib
 import requests
@@ -16,13 +18,14 @@ import sys
 from bs4 import BeautifulSoup
 
 configs = {
-    'threads': 10,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'threads': 4,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'concurrent_connections': 4,
     'download_dir': 'D:/Music/',  # copy the playlists in here
     'sync_download_dir': [  # list of my sync directories, if you ha
         'G:/MUSIC/spotify/'
     ],
     'song_selection': {
-        'edge_cases': ['live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert', 'karaoke'],  # download anything except this, only if the required song does not contain these words.
+        'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert', 'karaoke', 'perfomance', '8D', 'Chipmunks', 'bass boosted'],  # download anything except this, only if the required song does not contain these words.
         'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
         'append_search_term': '',  # append some terms for search
@@ -76,6 +79,17 @@ configs = {
             'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
             'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
+            'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:3X4oLrVQfB6i44z3aJDIxl',
+            'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:7hYrzrl2TbVF4aEpnVHqgG',
+            'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:0OtZSHd8rFgNDtBwtQbyCZ',
+            'spotify:user:11179003172:playlist:7fBRvz6S4mjswDjUmaK4hq',
+            'spotify:user:11179003172:playlist:5zDcKzdZaqjs4o4zf9x0wp',
+            'spotify:user:joshtunji:playlist:0X0Vnaf0XaeE8MqoAUATMy',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6qHGCjoXAIGKVsg0rNdAMh',
+            'spotify:user:madelenee.:playlist:1vuGNDn807qM1Qsa1fUfZq',
+            'spotify:user:beckz:playlist:6ZZnxExyWOOE8GavGSNHIB',
+            'spotify:user:daniel_lawson9999:playlist:6jeSKyPBU24fdGlYfOaSnx',
+            'spotify:user:spotify:playlist:37i9dQZF1DX5q67ZpWyRrZ',
         ]
     }
 }
@@ -106,11 +120,11 @@ def search_youtube(text_to_search):
 
     try:
         response = urllib.request.urlopen(url)
+        html = response.read()
+        html = str(html, 'utf-8')
     except Exception as e:
-        print(e)
-        pass
-
-    html = response.read()
+        p('Youtube gave up! :( ' + repr(e))
+        return []
 
     page = BeautifulSoup(html, features='lxml')
     vid_list = page.find_all('div', attrs={'class': 'yt-lockup-content'})
@@ -136,8 +150,17 @@ def search_youtube(text_to_search):
         # else:
         #     continue
 
-        duration = vid.findChild('span', attrs={'class': 'accessible-description'}, recursive=True).text
-        channel_name = vid.findChild('a', attrs={'class': 'yt-uix-sessionlink'}, recursive=True).text
+        duration_el = vid.findChild('span', attrs={'class': 'accessible-description'}, recursive=True)
+        if duration_el is None:
+            continue
+
+        duration = duration_el.text
+
+        channel_name = ''
+        channel_name_el = vid.findChild('a', attrs={'class': 'yt-uix-sessionlink'}, recursive=True)
+        if channel_name_el is None:
+            channel_name = channel_name_el.text
+
         video_description_el = vid.findChild('div', attrs={'class': 'yt-lockup-description'}, recursive=True)
         video_description = ''
         if video_description_el is not None:
@@ -166,6 +189,7 @@ def search_youtube(text_to_search):
             'duration': duration_parsed,
             'duration_seconds': total_duration_in_seconds
         })
+
     return video_list
 
 
@@ -230,29 +254,50 @@ def clean_filename(filename):
     return filename
 
 
+get_spotify_playlist_threads = 0
+get_spotify_playlist = []
+
+
 def get_spotify_playlist(spotify_playlist):
-    playlist = []
+    global get_spotify_playlist
+    global get_spotify_playlist_threads
+    get_spotify_playlist = []
 
     for playlist_info in spotify_playlist:
-        info = sp.user_playlist(playlist_info['user'], playlist_info['playlist_id']);
+        def get_playlist(playlist_info2):
+            global get_spotify_playlist_threads
+            global get_spotify_playlist
+            info = sp.user_playlist(playlist_info2['user'], playlist_info2['playlist_id']);
 
-        owner_name = info['owner']['display_name']
-        p('Got playlist from ' + owner_name + ' ' + info['name'])
-        path = clean_filename(owner_name[:6] + '-' + info['name'])
+            owner_name = info['owner']['display_name']
+            p('Got playlist from ' + owner_name + ' ' + info['name'])
+            path = clean_filename(owner_name[:6] + '-' + info['name'])
 
-        playlist_single_info = {
-            'name': info['name'],
-            'path': path + '/',
-            'tracks': [],
-            'playlist_id': info['id'],
-            'type': 'spotify',
-            'user_id': info['owner']['id'],
-            'user_name': info['owner']['display_name']
-        }
+            playlist_single_info = {
+                'name': info['name'],
+                'path': path + '/',
+                'tracks': [],
+                'playlist_id': info['id'],
+                'type': 'spotify',
+                'user_id': info['owner']['id'],
+                'user_name': info['owner']['display_name']
+            }
 
-        playlist.append(playlist_single_info)
+            get_spotify_playlist.append(playlist_single_info)
+            get_spotify_playlist_threads -= 1
 
-    return playlist
+        while get_spotify_playlist_threads > configs['concurrent_connections']:
+            time.sleep(.1)
+
+        t = threading.Thread(target=get_playlist, args=(playlist_info,))
+        t.daemon = True
+        get_spotify_playlist_threads += 1
+        t.start()
+
+    while get_spotify_playlist_threads != 0:
+        time.sleep(.2)
+
+    return get_spotify_playlist
 
 
 def get_spotify_tracks(user_id, playlist_id):
@@ -271,19 +316,18 @@ def get_spotify_tracks(user_id, playlist_id):
         album_name = t['track']['album']['name']
         path = clean_filename(artist_name + '-' + track_name)
 
-        # split the artist name and track name add + before them, all of the words must be there in the youtube video title.
-        main_term = artist_name + ' ' + track_name
+        track_term = clean_filename(track_name)
         composed_terms = []
         term_index = 0
-        for term in main_term.split(' '):
+        for term in track_term.split(' '):
             term_index += 1
             if len(term) > 1:
                 if term_index < 5:
                     composed_terms.append('"' + term + '"')  # make strict search for first 5 words
                 else:
-                    composed_terms.append('+' + term + '')  # not so strict search for later words
+                    composed_terms.append('' + term + '')  # not so strict search for later words
 
-        composed_term = ' '.join(composed_terms)
+        composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
 
         search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
         track = {
@@ -332,10 +376,13 @@ def process_diff_files(diff, source, dest):
     files_to_add = diff['files_to_add']
     for r in files_to_remove:
         d = dest + r
-        os.remove(d)
-        p('Removed file: ' + d)
-        dirs = d[:d.rfind('/')]
-        remove_dir_if_empty(dirs)
+        try:
+            os.remove(d)
+            p('Removed file: ' + d)
+            dirs = d[:d.rfind('/')]
+            remove_dir_if_empty(dirs)
+        except:
+            p("Hmm could not remove the file or dir")
 
     t = len(files_to_add)
     for f in files_to_add:
@@ -345,8 +392,11 @@ def process_diff_files(diff, source, dest):
             p('Creating folder ' + dirs)
             os.makedirs(dirs)
         if not os.path.exists(dest + f):
-            p('Copying file ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
-            shutil.copyfile(source + f, dest + f)
+            if not os.path.exists(source + f):
+                p('The source file ' + f + ' does not exists')
+            else:
+                p('Copying file ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
+                shutil.copyfile(source + f, dest + f)
         else:
             p('Already exists ' + str(t) + '/' + str(len(files_to_add)) + ' - ' + dest + f)
         t -= 1
@@ -424,8 +474,12 @@ def clean_temp():
             os.remove('./' + f)
 
 
+process_playlist_threads = 0
+parsed_playlist = []
+
+
 def process_playlist():
-    hr = '-------------'
+    hr = '───────────────────'
     p('Starting sync')
     parse_spotify_playlist_config()
     p('Download dir: ' + configs['download_dir'])
@@ -438,29 +492,48 @@ def process_playlist():
 
     p('Getting playlists')
     playlist = get_spotify_playlist(configs['playlist']['spotify_parsed'])
-    parsed_playlist = []
 
     global total_playlist
     global total_playlist_cd
     global total_tracks
     global total_tracks_cd
+    global parsed_playlist
+    parsed_playlist = []
     total_playlist = len(playlist)
     total_playlist_cd = total_playlist
     total_tracks = 0
     total_tracks_cd = 0
+    p(hr)
     p('Found ' + str(total_playlist) + ' playlists')
 
-    for pl in playlist:
-        p(hr)
-        p('Getting tracks from ' + pl['name'])
-        tracks = get_spotify_tracks(pl['user_id'], pl['playlist_id'])
-        total_tracks += len(tracks)
-        p('Got ' + str(len(tracks)) + ' tracks from ' + pl['name'])
-        pl['tracks'] = tracks
-        parsed_playlist.append(pl)
+    global process_playlist_threads
+    process_playlist_threads = 0
 
-    p(hr)
+    for pl in playlist:
+        def get_playlist(pl2):
+            global process_playlist_threads
+            global total_tracks
+            global parsed_playlist
+            tracks = get_spotify_tracks(pl2['user_id'], pl2['playlist_id'])
+            total_tracks += len(tracks)
+            p('Got ' + str(len(tracks)) + ' tracks from ' + pl2['name'])
+            pl2['tracks'] = tracks
+            parsed_playlist.append(pl2)
+            process_playlist_threads -= 1
+
+        while process_playlist_threads > configs['concurrent_connections']:
+            time.sleep(0.5)
+
+        t = threading.Thread(target=get_playlist, args=(pl,))
+        t.daemon = True
+        process_playlist_threads += 1
+        t.start()
+
+    while process_playlist_threads != 0:
+        time.sleep(0.5)
+
     p('Playlist scan complete, found ' + str(total_tracks) + ' total tracks')
+    p(hr)
     total_tracks_cd = total_tracks
 
     diff_file_paths = []
@@ -472,14 +545,14 @@ def process_playlist():
         for track_index, track in enumerate(pl['tracks']):
 
             def process_track(pl, folder_path, track, track_index):
-                global total_tracks_cd
                 global running_threads
+                global total_tracks_cd
                 running_threads += 1
-                p(hr)
                 pre_text = pl['name'][:10] + ' | ' + track['name']
+                p(hr + ' ' + pre_text)
                 p2(str(running_threads) + 'T | ' + pre_text)
-                file_path = folder_path + track['path']
                 diff_file_paths.append(pl['path'] + track['path'])
+                file_path = folder_path + track['path']
                 p2(str(running_threads) + 'T | ' + pre_text + ': output to: ' + file_path)
                 if os.path.exists(file_path):
                     p2(str(running_threads) + 'T | ' + pre_text + ': file already exists, skipping')
@@ -603,15 +676,16 @@ def process_playlist():
             while running_threads > configs['threads'] - 1:
                 time.sleep(.01)
 
+            # time.sleep(random.uniform(0, 1))
             t = threading.Thread(target=process_track, args=(pl, folder_path, track, track_index))
             t.daemon = True
             t.start()
 
         total_playlist_cd -= 1
 
-    p('Waiting for threads to finish')
+    p('Waiting for threads to finish :' + str(running_threads))
     while running_threads != 0:
-        print('.', end='')
+        print('... Running threads: ' + str(running_threads))
         time.sleep(1)
 
     p('Checking for removed files')
