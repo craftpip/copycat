@@ -25,7 +25,11 @@ configs = {
         'G:/MUSIC/spotify/'
     ],
     'song_selection': {
-        'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert', 'karaoke', 'perfomance', '8D', 'Chipmunks', 'bass boosted'],  # download anything except this, only if the required song does not contain these words.
+        'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert',
+                       'reimagined', 'bass boost', 'boosted', 'explained', 'slowed', 'karaoke',
+                       'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind',
+                       'chipmunks', 'preview', 'mashup', 'feat', 'bass', 'acoustic', 'session',
+                       'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # download anything except this, only if the required song does not contain these words.
         'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
         'append_search_term': '',  # append some terms for search
@@ -602,7 +606,7 @@ def process_playlist():
                     # detect edge cases here live, instrumental etc
                     edge_cases = configs['song_selection']['edge_cases']
                     for e in edge_cases:
-                        if r2.find(e) != -1 and terms.find(e) == -1:
+                        if r2.find(e.lower()) != -1 and terms.find(e.lower()) == -1:
                             unrelated = True
                             break
 
