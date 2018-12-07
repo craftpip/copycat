@@ -1,24 +1,21 @@
-import random
-import spotipy
-import urllib.request
-from spotipy.oauth2 import SpotifyClientCredentials
-import os
 import argparse
-import youtube_dl
-import subprocess
-from youtube import API
-import eyed3
-import urllib
-import requests
-from pyquery import PyQuery as pq
-import threading
-import time
+import os
 import shutil
 import sys
+import threading
+import time
+import urllib
+import urllib.request
+
+import eyed3
+import requests
+import spotipy
+import youtube_dl
 from bs4 import BeautifulSoup
+from spotipy.oauth2 import SpotifyClientCredentials
 
 configs = {
-    'threads': 4,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'threads': 6,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
     'concurrent_connections': 4,
     'download_dir': 'D:/Music/',  # copy the playlists in here
     'sync_download_dir': [  # list of my sync directories, if you ha
