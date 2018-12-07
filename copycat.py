@@ -27,7 +27,7 @@ configs = {
     'song_selection': {
         'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert',
                        'reimagined', 'bass boost', 'boosted', 'explained', 'slowed', 'karaoke',
-                       'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind',
+                       'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind', 'festival',
                        'chipmunks', 'preview', 'mashup', 'feat', 'bass', 'acoustic', 'session',
                        'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # download anything except this, only if the required song does not contain these words.
         'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
@@ -54,7 +54,6 @@ configs = {
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5UQfaRkWVkjVQXA4pKnMcF',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5xflzpmFIBkTfosAi8L2S9',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2qw21OuDXsbLNl0A0Yq4y8',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:42qXqZxkKrrigw4lhQyQTu',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
@@ -64,22 +63,16 @@ configs = {
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
-            'spotify:user:spotify:playlist:37i9dQZF1DX87JE1B72J6C',
-            'spotify:user:1282700495:playlist:1CJQ6mkmmsw3qQKXUGuxIP',
             'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
-            'spotify:user:brettwhitford:playlist:6UEF0bpIUlVnbPyjrAgdcQ',
-            'spotify:user:swissendo:playlist:2RjVgOpvTms8WmlHC93bxU',
             'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
             'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
             'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
             'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
-            'spotify:user:22gfazgq7twsmgidqrpzablla:playlist:1nJkQ7YbenUXPliKUYHH8k',
             'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
             'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
             'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
             'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
             'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
-            'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0FSkZ3y8AV6VZU49F31sRT',
             'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
             'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
@@ -90,20 +83,23 @@ configs = {
             'spotify:user:11179003172:playlist:5zDcKzdZaqjs4o4zf9x0wp',
             'spotify:user:joshtunji:playlist:0X0Vnaf0XaeE8MqoAUATMy',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6qHGCjoXAIGKVsg0rNdAMh',
-            'spotify:user:madelenee.:playlist:1vuGNDn807qM1Qsa1fUfZq',
-            'spotify:user:beckz:playlist:6ZZnxExyWOOE8GavGSNHIB',
-            'spotify:user:daniel_lawson9999:playlist:6jeSKyPBU24fdGlYfOaSnx',
             'spotify:user:spotify:playlist:37i9dQZF1DX5q67ZpWyRrZ',
+            'spotify:user:mattblank:playlist:0TFote5YVb9Cx1P521RUhO',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5mBjSkHlo40GVHo0JQ27pC',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5dkWjO33ik0uNsHC5WTf2K',
+            'spotify:user:spotify:playlist:37i9dQZF1DX1HUbZS4LEyL',
+            'spotify:user:spotify:playlist:37i9dQZF1Ej1GwRxydBso3',
+            'spotify:user:spotify:playlist:37i9dQZF1EjjdlYJj1GhpF',
         ]
     }
 }
 
-parser = argparse.ArgumentParser(description="Copy that shit")
-parser.add_argument("-s", help="sync the playlist and with target drive", action='store_true')
-parser.add_argument("-ds", help="sync with drive only", action='store_true')
+parser = argparse.ArgumentParser(description="🎷 Sync your Spotify music with your MP3 player!")
+parser.add_argument("-s", help="Sync and download playlist", action='store_true')
+parser.add_argument("-ds", help="sync downloaded files with your target drive", action='store_true')
 parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
 parser.add_argument("-v", help="get more output?", action='store_true')
-parser.add_argument("-d", help="For debug", action='store_true')
+parser.add_argument("-d", help="Developer use only, for debug", action='store_true')
 args = parser.parse_args()
 
 client_credentials_manager = SpotifyClientCredentials(configs['spotify']['client_id'],
@@ -111,14 +107,19 @@ client_credentials_manager = SpotifyClientCredentials(configs['spotify']['client
 sp = spotipy.Spotify(client_credentials_manager=client_credentials_manager)
 
 
-# Printer
-def p(str):
-    print(str)
-    # pp = pprint.PrettyPrinter(indent=2)
-    # pp.pprint(str)
+def p(print_string):
+    """
+    Print stuff ?
+    :rtype: object
+    """
+    print(print_string)
 
 
 def search_youtube(text_to_search):
+    """
+    Search the text on youtube and return its parsed results with title, channel name, desc and duration
+    :rtype: object
+    """
     query = urllib.parse.quote(text_to_search)
     url = "https://www.youtube.com/results?search_query=" + query
 
@@ -127,14 +128,12 @@ def search_youtube(text_to_search):
         html = response.read()
         html = str(html, 'utf-8')
     except Exception as e:
-        p('Youtube gave up! :( ' + repr(e))
+        p('Youtube gave up, this is so sad, can we get 1 like ' + repr(e))
         return []
 
     page = BeautifulSoup(html, features='lxml')
     vid_list = page.find_all('div', attrs={'class': 'yt-lockup-content'})
 
-    # d = pq(html)
-    # vid_list = d('.yt-lockup-content')
     video_list = []
     for vid in vid_list:
 
@@ -144,15 +143,6 @@ def search_youtube(text_to_search):
 
         title = title_link.attrs['title']
         href = title_link.attrs['href']
-
-        # title = vid.('a', attrs={'class': 'yt-uix-tile-link'}).attrs['title']
-        # title = vid.find('a', attrs={'class': 'yt-uix-tile-link'}).attrs['href']
-        # title = vid.attrib['title']
-        # href = vid.attrib['href']
-        # if 'aria-describedby' in vid.attrib:
-        #     des = vid.attrib['aria-describedby']
-        # else:
-        #     continue
 
         duration_el = vid.findChild('span', attrs={'class': 'accessible-description'}, recursive=True)
         if duration_el is None:
@@ -170,13 +160,12 @@ def search_youtube(text_to_search):
         if video_description_el is not None:
             video_description = video_description_el.text
 
-        # duration = d('#' + des).contents()[0]
-
         if duration.find('Duration') == -1:
             continue
 
         duration_parsed = duration[duration.find(':') + 2:-1]
         # not parsing hour long stuff right now: example: 1:01:49
+        # if the target video is more than 1 hr, consider it has 1 hr.
         if len(duration_parsed) > 5:
             duration_parsed = '59:59'
 
@@ -197,15 +186,12 @@ def search_youtube(text_to_search):
     return video_list
 
 
-def sort_key(val):
-    return val['duration_seconds']
-
-
-def spotify_get_playlist_info(playlist):
-    print(playlist)
-
-
 def download_video(video_id, file_name):
+    """
+    Download the audio format 251, and store it in file_name
+
+    :rtype: object -> file name
+    """
     ydl_opts = {
         'format': '251/best',
         'outtmpl': './' + file_name + '.webm',
@@ -221,6 +207,10 @@ def download_video(video_id, file_name):
 
 
 def convert_to_mp3(source, target):
+    """
+    Convert the downloaded webm file to mp3
+    :rtype: object
+    """
     source = source.replace('/', '\\')
     target = target.replace('/', '\\')
 
@@ -232,6 +222,10 @@ def convert_to_mp3(source, target):
 
 
 def tag_mp3(file_path, track):
+    """
+    tag that mp3, insert artist, album, track names and album art.
+    :rtype: object
+    """
     f = eyed3.load(file_path)
     if f.tag is None:
         f.initTag()
@@ -239,8 +233,6 @@ def tag_mp3(file_path, track):
     if track['album_art'] is not None:
         content = requests.get(track['album_art']).content
         f.tag.images.set(3, content, 'image/jpeg')
-
-    # f.info
 
     f.tag.comments.set(track['search_term'] + ' = ' + track['selected_result'])
     f.tag.artist = track['artist']
@@ -320,7 +312,7 @@ def get_spotify_tracks(user_id, playlist_id):
         album_name = t['track']['album']['name']
         path = clean_filename(artist_name + '-' + track_name)
 
-        track_term = clean_filename(track_name)
+        track_term = clean_filename(artist_name + ' ' + track_name)
         composed_terms = []
         term_index = 0
         for term in track_term.split(' '):
@@ -331,7 +323,8 @@ def get_spotify_tracks(user_id, playlist_id):
                 else:
                     composed_terms.append('' + term + '')  # not so strict search for later words
 
-        composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
+        # composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
+        composed_term = ' '.join(composed_terms)
 
         search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
         track = {
