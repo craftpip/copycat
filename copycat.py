@@ -26,6 +26,7 @@ configs = {
                        'reimagined', 'bass boost', 'boosted', 'explained', 'slowed', 'karaoke',
                        'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind', 'festival',
                        'chipmunks', 'preview', 'mashup', 'feat', 'bass', 'acoustic', 'session',
+                       ' vs ', 'sings', 'grammy', 'parody', 'decoded',
                        'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # download anything except this, only if the required song does not contain these words.
         'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
@@ -34,7 +35,6 @@ configs = {
     'youtube_username': None,  # Cant download ? try this
     'youtube_password': None,
     'tag_mp3': True,  # sure, why would you not?
-    'sleep_timer_minutes': 15,  # use -r and restart copycat after 15 minutes
     'spotify': {  # you know what
         'client_id': 'ea59966691f546a38c800e765338cf31',
         'client_secret': 'a99b13c2324340939cca0a6d71f91bc3'
@@ -215,7 +215,7 @@ def convert_to_mp3(source, target):
     # subprocess.call('.\\ffmpeg\\bin\\ffmpeg.exe -threads 6 -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '"', shell=True, stdout=fnull, stderr=subprocess.STDOUT)
 
     os.system(
-        '".\\ffmpeg\\bin\\ffmpeg.exe -hide_banner -i "' + source + '" -vn -ab 128k -ar 44100 -y "' + target + '""')
+        '".\\ffmpeg\\bin\\ffmpeg.exe -hide_banner -i "' + source + '" -vn -ab 160k -ar 44100 -y "' + target + '""')
 
 
 def tag_mp3(file_path, track):
@@ -309,19 +309,35 @@ def get_spotify_tracks(user_id, playlist_id):
         album_name = t['track']['album']['name']
         path = clean_filename(artist_name + '-' + track_name)
 
-        track_term = clean_filename(artist_name + ' ' + track_name)
-        composed_terms = []
-        term_index = 0
-        for term in track_term.split(' '):
-            term_index += 1
-            if len(term) > 1:
-                if term_index < 5:
-                    composed_terms.append('"' + term + '"')  # make strict search for first 5 words
-                else:
-                    composed_terms.append('' + term + '')  # not so strict search for later words
+        def compose_term(term, lim):
+            composed_terms = []
+            index = 0
+            for t in term.split(' '):
+                if len(t) > 1:
+                    if index <= lim:
+                        composed_terms.append('"' + t + '"')  # make strict search for first 5 words
+                        index += 1
+                    else:
+                        composed_terms.append('' + t + '')  # not so strict search for later words
 
-        # composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
-        composed_term = ' '.join(composed_terms)
+            return ' '.join(composed_terms)
+
+        # track_term = clean_filename(artist_name + ' ' + track_name)
+
+        composed_term = compose_term(clean_filename(artist_name), 2) + ' ' + compose_term(clean_filename(track_name), 4)
+        #
+        # composed_terms = []
+        # term_index = 0
+        # for term in track_term.split(' '):
+        #     term_index += 1
+        #     if len(term) > 1:
+        #         if term_index < 5:
+        #             composed_terms.append('"' + term + '"')  # make strict search for first 5 words
+        #         else:
+        #             composed_terms.append('' + term + '')  # not so strict search for later words
+        #
+        # # composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
+        # composed_term = ' '.join(composed_terms)
 
         search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
         track = {
@@ -470,10 +486,10 @@ def clean_temp():
 
 process_playlist_threads = 0
 parsed_playlist = []
+hr = '───────────────────'
 
 
 def process_playlist():
-    hr = '───────────────────'
     p('Starting sync')
     parse_spotify_playlist_config()
     p('Download dir: ' + configs['download_dir'])
@@ -492,6 +508,7 @@ def process_playlist():
     global total_tracks
     global total_tracks_cd
     global parsed_playlist
+    songs_not_found_list = []
     parsed_playlist = []
     total_playlist = len(playlist)
     total_playlist_cd = total_playlist
@@ -619,6 +636,7 @@ def process_playlist():
 
                 if len(results) == 0:
                     p2(str(running_threads) + 'T | ' + pre_text + ': results were not found')
+                    songs_not_found_list.append(pre_text + ', term used: ' + track['search_term'])
                     total_tracks_cd = total_tracks_cd - 1
                     running_threads -= 1
                     sys.exit()
@@ -691,13 +709,18 @@ def process_playlist():
 
     sync_drive()
 
-    if args.r:
-        p('Restarting sync in ' + str(configs['sleep_timer_minutes']) + ' minutes')
-        time.sleep(configs['sleep_timer_minutes'] * 60)
-        process_playlist()
+    p('Songs not found: ' + str(len(songs_not_found_list)))
+    for s in songs_not_found_list:
+        p('not found: ' + s)
+
+    p('Completed')
 
 
 def sync_drive():
+    """
+    Sync download drive with sync drives
+    :rtype: object
+    """
     for drive in configs['sync_download_dir']:
         if os.path.exists(drive):
             p('Syncing files with ' + drive)
@@ -709,8 +732,6 @@ def sync_drive():
 
 if args.d:
     print('ok')
-    results = search_youtube('+Cocainejesus +She')
-    # tag_mp3('./tracks/1/airbag-colours.mp3', {})
 
 if args.s:
     process_playlist()
