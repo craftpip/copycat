@@ -15,11 +15,11 @@ from bs4 import BeautifulSoup
 from spotipy.oauth2 import SpotifyClientCredentials
 
 configs = {
-    'threads': 6,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
-    'concurrent_connections': 4,
+    'threads': 4,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
+    'concurrent_connections': 2,
     'download_dir': 'D:/Music/',  # copy the playlists in here
     'sync_download_dir': [  # list of my sync directories, if you ha
-        'G:/MUSIC/spotify/'
+        'G:/MUSIC/spotify/',
     ],
     'song_selection': {
         'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert',
@@ -54,39 +54,27 @@ configs = {
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Q62orQBszxls0g2yxWN6X',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0eY4C0q3SVnZWmQiYSyTb3',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4MpUBMEDNqkseBKLuNgCMr',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6H6AyGNcTQbjQeI9GmQ07m',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5Fehnt4XGBQVkHO2NF2sv0',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:4PKUgBkj8MOiQwHj5pEmTL',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6XYIIFFpGHYQ2EsBsv9aAk',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6eZobcGfdT3TuMylwgV1Hx',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3Di9PmF4sLLLoaUQ10qqEL',
             'spotify:user:tdq7bo60ro67xx9gnuatz1qx6:playlist:0eXnwvcuq88A9w6TvDeNLw',
             'spotify:user:123081956:playlist:6pbOuIfOAMVSYxV9FIBvsI',
-            'spotify:user:jlfgaming:playlist:5PkNSRODWEvFIp4u8mHZXH',
-            'spotify:user:21xpqeodpx4vlobjtdxf6xt3y:playlist:1T00fgjM0Epc6MunxsmrA7',
             'spotify:user:pewdie:playlist:4qJBhPqsmoqwV7mPsgJZ6l',
-            'spotify:user:goldenavatar1:playlist:60m43P0UjaLrmI9XdCZmuF',
             'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:5tTlPOZIr4EaV42OUiJAcZ',
             'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:33iJTZ55XEWs2zPHTKpRCq',
-            'spotify:user:cliff9810:playlist:0KiOJjW21jHFWryuFu8EHi',
             'spotify:user:pewdie:playlist:0FjMXxjLKm9DIwYMVUrX3i',
             'spotify:user:pewdie:playlist:1qWIvsjfa2V69YiuME2zJM',
             'spotify:user:21g7fr65qebg7ritookvwlloa:playlist:6eNQ20tCDoxguQ6yp1aQ8w',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:0tkQu3nGrfoxmK33pdMDoS',
-            'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:3X4oLrVQfB6i44z3aJDIxl',
             'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:7hYrzrl2TbVF4aEpnVHqgG',
             'spotify:user:21pvzacbrr6h6awhrfzqmhlnq:playlist:0OtZSHd8rFgNDtBwtQbyCZ',
             'spotify:user:11179003172:playlist:7fBRvz6S4mjswDjUmaK4hq',
             'spotify:user:11179003172:playlist:5zDcKzdZaqjs4o4zf9x0wp',
-            'spotify:user:joshtunji:playlist:0X0Vnaf0XaeE8MqoAUATMy',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:6qHGCjoXAIGKVsg0rNdAMh',
             'spotify:user:spotify:playlist:37i9dQZF1DX5q67ZpWyRrZ',
-            'spotify:user:mattblank:playlist:0TFote5YVb9Cx1P521RUhO',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5mBjSkHlo40GVHo0JQ27pC',
-            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5dkWjO33ik0uNsHC5WTf2K',
-            'spotify:user:spotify:playlist:37i9dQZF1DX1HUbZS4LEyL',
             'spotify:user:spotify:playlist:37i9dQZF1Ej1GwRxydBso3',
-            'spotify:user:spotify:playlist:37i9dQZF1EjjdlYJj1GhpF',
+            'spotify:user:spotify:playlist:37i9dQZF1DX0Yxoavh5qJV',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2SqbMZoLVzkFfOviJuSFf8',
         ]
     }
 }
@@ -94,7 +82,7 @@ configs = {
 parser = argparse.ArgumentParser(description="🎷 Sync your Spotify music with your MP3 player!")
 parser.add_argument("-s", help="Sync and download playlist", action='store_true')
 parser.add_argument("-ds", help="sync downloaded files with your target drive", action='store_true')
-parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
+# parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
 parser.add_argument("-v", help="get more output?", action='store_true')
 parser.add_argument("-d", help="Developer use only, for debug", action='store_true')
 args = parser.parse_args()
@@ -258,9 +246,15 @@ def get_spotify_playlist(spotify_playlist):
 
     for playlist_info in spotify_playlist:
         def get_playlist(playlist_info2):
+
             global get_spotify_playlist_threads
             global get_spotify_playlist
-            info = sp.user_playlist(playlist_info2['user'], playlist_info2['playlist_id']);
+
+            try:
+                info = sp.user_playlist(playlist_info2['user'], playlist_info2['playlist_id']);
+            except:
+                p("\n Failed to get playlist " + playlist_info2['playlist_id'])
+                os._exit(1)
 
             owner_name = info['owner']['display_name']
             p('Got playlist from ' + owner_name + ' ' + info['name'])
