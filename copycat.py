@@ -258,7 +258,7 @@ def get_spotify_playlist(spotify_playlist):
                 os._exit(1)
 
             owner_name = info['owner']['display_name']
-            p('Got playlist from ' + owner_name + ' ' + info['name'])
+            p('Fetching playlist information for ✔ id:' + owner_name + ' playlist: ' + info['name'])
             path = clean_filename(owner_name[:6] + '-' + info['name'])
 
             playlist_single_info = {
