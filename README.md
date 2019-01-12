@@ -12,21 +12,30 @@ finally i can live in peace.
 
 ## Flow?
 
-- Searches the track on youtube
-- Downloads the bestest available audio format of the song that has the least difference in play length
+- Reads your spotify playlist 
+- Searches each track on youtube
+- Downloads the best available audio format of the song that has the least difference in play length (and other factors for selection)
 - Converts the file to mp3
 - Adds ID3 tags and albumart to it
 - Makes an exact copy of your playlists as folders on disk
 - Syncs the playlist folders with a target drive (my walkman)
-- very cool :ok_hand:
+- Easy.
 
 
 ## Installation
 
-Download the repo
+Download the repo  
+and install its dependencies
+```cmd
+pip install bs4
+pip install eyed3
+pip install spotipy
+pip install youtube_dl
+```
 
+Open `copycat.py` and make your customizations in the configs dict.
 
-## Basic Usage
+## Run it
 
 ```cmd
 python copycat.py -s

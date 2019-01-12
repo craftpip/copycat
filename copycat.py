@@ -26,7 +26,7 @@ configs = {
                        'reimagined', 'bass boost', 'boosted', 'explained', 'slowed', 'karaoke',
                        'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind', 'festival',
                        'chipmunks', 'preview', 'mashup', 'feat', 'bass', 'acoustic', 'session',
-                       ' vs ', 'sings', 'grammy', 'parody', 'decoded',
+                       ' vs ', 'sings', 'grammy', 'parody', 'decoded', 'lyrics',
                        'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # download anything except this, only if the required song does not contain these words.
         'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
