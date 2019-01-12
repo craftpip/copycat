@@ -43,6 +43,7 @@ configs = {
         'spotify_parsed': [],  # for internal use, dont worry
         'spotify': [
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:7LcwHqdf9iDky7Oe2VERvG',
+            'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:3LlXgvunZgKYec1YnqLKvP',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:5kfIHgK2R4J00apbdw4IDI',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:1QwlIfoV399cUtG4zOBopB',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2hOGqIV7Ew99mGDNenf4Ws',
@@ -585,6 +586,8 @@ def process_playlist():
                 for r in all_results:
                     matches = 0
                     search_in = r['title'] + ' ' + r['channel'] + ' ' + r['description']
+                    edge_case_search_in = r['title'] + ' ' + r['channel']
+                    edge_case_search_in2 = clean_filename(edge_case_search_in).lower()
                     unrelated = False
                     r2 = clean_filename(search_in).lower()
                     for t in terms_list:
@@ -607,7 +610,7 @@ def process_playlist():
                     # detect edge cases here live, instrumental etc
                     edge_cases = configs['song_selection']['edge_cases']
                     for e in edge_cases:
-                        if r2.find(e.lower()) != -1 and terms.find(e.lower()) == -1:
+                        if edge_case_search_in2.find(e.lower()) != -1 and terms.find(e.lower()) == -1:
                             unrelated = True
                             break
 
