@@ -16,24 +16,25 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 configs = {
     'threads': 4,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
-    'concurrent_connections': 2,
-    'download_dir': 'D:/Music/',  # copy the playlists in here
-    'sync_download_dir': [  # list of my sync directories, if you ha
+    'concurrent_connections': 2,  # threaded spotify connections,
+    'download_dir': 'D:/Music/',  # Downloaded songs go here.
+    'sync_download_dir': [  # Sync the downloaded songs with these directories
         'G:/MUSIC/spotify/',
     ],
     'song_selection': {
+        'use_filtering': False,
         'edge_cases': ['remix', 'live', 'instrumental', 'cover', 'how to', 'tutorial', 'concert',
                        'reimagined', 'bass boost', 'boosted', 'explained', 'slowed', 'karaoke',
                        'datamosh', 'show', '3d', 'dance', 'unplugged', 'behind', 'festival',
                        'chipmunks', 'preview', 'mashup', 'feat', 'bass', 'acoustic', 'session',
                        ' vs ', 'sings', 'grammy', 'parody', 'decoded', 'lyrics',
-                       'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # download anything except this, only if the required song does not contain these words.
-        'min_percent_threshold': 80,  # if a song title is more than 5 words, check if % if it matches
+                       'performance', '8d', 'chipmunks', 'bass boosted', 'clean'],  # ignore songs that contain these words,
+        'min_percent_threshold': 60,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
         'append_search_term': '',  # append some terms for search
     },
     'youtube_username': None,  # Cant download ? try this
-    'youtube_password': None,
+    'youtube_password': None,  # 🙈
     'tag_mp3': True,  # sure, why would you not?
     'spotify': {  # you know what
         'client_id': 'ea59966691f546a38c800e765338cf31',
@@ -74,15 +75,15 @@ configs = {
             'spotify:user:11179003172:playlist:5zDcKzdZaqjs4o4zf9x0wp',
             'spotify:user:spotify:playlist:37i9dQZF1DX5q67ZpWyRrZ',
             'spotify:user:spotify:playlist:37i9dQZF1Ej1GwRxydBso3',
-            'spotify:user:spotify:playlist:37i9dQZF1DX0Yxoavh5qJV',
             'spotify:user:wiks69g0l47jxtgm7z1fwcuff:playlist:2SqbMZoLVzkFfOviJuSFf8',
+            'spotify:user:zs0qpp1zt836hy3qscmipn38y:playlist:3fj9vb3RDH0WmigzCFm9nR',
         ]
     }
 }
 
 parser = argparse.ArgumentParser(description="🎷 Sync your Spotify music with your MP3 player!")
-parser.add_argument("-s", help="Sync and download playlist", action='store_true')
-parser.add_argument("-ds", help="sync downloaded files with your target drive", action='store_true')
+parser.add_argument("-s", help="process playlist, download, and sync with target drive", action='store_true')
+parser.add_argument("-ds", help="sync downloaded files with your target drive only", action='store_true')
 # parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
 parser.add_argument("-v", help="get more output?", action='store_true')
 parser.add_argument("-d", help="Developer use only, for debug", action='store_true')
@@ -114,7 +115,7 @@ def search_youtube(text_to_search):
         html = response.read()
         html = str(html, 'utf-8')
     except Exception as e:
-        p('Youtube gave up, this is so sad, can we get 1 like ' + repr(e))
+        p('😥 Youtube gave up, this is so sad, can we get 1 like ' + repr(e))
         return []
 
     page = BeautifulSoup(html, features='lxml')
@@ -229,7 +230,12 @@ def tag_mp3(file_path, track):
     f.tag.save(None, (2, 3, 0))
 
 
-def clean_filename(filename):
+def clean_string(filename):
+    """
+    Clean the string, only keep alnum, spaces and -
+    :param filename:
+    :return:
+    """
     whitelist = set('abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-')
     filename = ''.join(filter(whitelist.__contains__, filename))
     filename = filename.lower().strip()
@@ -259,7 +265,7 @@ def get_spotify_playlist(spotify_playlist):
 
             owner_name = info['owner']['display_name']
             p('Fetching playlist information for ✔ id:' + owner_name + ' playlist: ' + info['name'])
-            path = clean_filename(owner_name[:6] + '-' + info['name'])
+            path = clean_string(owner_name[:6] + '-' + info['name'])
 
             playlist_single_info = {
                 'name': info['name'],
@@ -283,7 +289,7 @@ def get_spotify_playlist(spotify_playlist):
         t.start()
 
     while get_spotify_playlist_threads != 0:
-        time.sleep(.2)
+        time.sleep(.1)
 
     return get_spotify_playlist
 
@@ -296,13 +302,14 @@ def get_spotify_tracks(user_id, playlist_id):
     :return:
     """
     # @todo implement tracks gathering for more than 100 tracks, pagination pending
+
     tracks = sp.user_playlist_tracks(user_id, playlist_id, None, 100, 0)
     parsed_tracks = []
     for t in tracks['items']:
         track_name = t['track']['name']
         artist_name = t['track']['artists'][0]['name']
         album_name = t['track']['album']['name']
-        path = clean_filename(artist_name + '-' + track_name)
+        path = clean_string(artist_name + '-' + track_name)
 
         def compose_term(term, lim):
             composed_terms = []
@@ -317,24 +324,9 @@ def get_spotify_tracks(user_id, playlist_id):
 
             return ' '.join(composed_terms)
 
-        # track_term = clean_filename(artist_name + ' ' + track_name)
-
-        composed_term = compose_term(clean_filename(artist_name), 2) + ' ' + compose_term(clean_filename(track_name), 4)
-        #
-        # composed_terms = []
-        # term_index = 0
-        # for term in track_term.split(' '):
-        #     term_index += 1
-        #     if len(term) > 1:
-        #         if term_index < 5:
-        #             composed_terms.append('"' + term + '"')  # make strict search for first 5 words
-        #         else:
-        #             composed_terms.append('' + term + '')  # not so strict search for later words
-        #
-        # # composed_term = clean_filename(artist_name) + ' ' + (' '.join(composed_terms))
-        # composed_term = ' '.join(composed_terms)
-
+        composed_term = compose_term(clean_string(artist_name), 2) + ' ' + compose_term(clean_string(track_name), 4)
         search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
+
         track = {
             'name': track_name,
             'search_term': search_term,
@@ -574,7 +566,7 @@ def process_playlist():
                 # have to remove unrelated results!!!
                 # we are selecting wrong tracks because of the diff.
                 # sometimes the diff of unrelated songs match exactly.
-                terms = clean_filename(track['artist'] + ' ' + track['name'])
+                terms = clean_string(track['artist'] + ' ' + track['name'])
                 terms_list = terms.split(' ')
                 required_matched_terms = []
                 for t in terms_list:
@@ -587,17 +579,17 @@ def process_playlist():
                     matches = 0
                     search_in = r['title'] + ' ' + r['channel'] + ' ' + r['description']
                     edge_case_search_in = r['title'] + ' ' + r['channel']
-                    edge_case_search_in2 = clean_filename(edge_case_search_in).lower()
+                    edge_case_search_in2 = clean_string(edge_case_search_in).lower()
                     unrelated = False
-                    r2 = clean_filename(search_in).lower()
+                    r2 = clean_string(search_in).lower()
                     for t in terms_list:
-                        t2 = clean_filename(t).lower()
+                        t2 = clean_string(t).lower()
                         if len(t) > 1 and r2.find(t2) != -1:
                             matches += 1
 
-                    if required_matches < 5 and matches != required_matches:
+                    if required_matches < 4 and matches != required_matches:
                         unrelated = True
-                    elif required_matches >= 5:
+                    elif required_matches >= 4:
                         # if a song has a long name, considering words beyond 5 are long,
                         # then percent will be calculated, more than n% will qualify
                         required_words_to_matches = configs['song_selection']['min_percent_threshold'] * required_matches / 100
@@ -613,6 +605,9 @@ def process_playlist():
                         if edge_case_search_in2.find(e.lower()) != -1 and terms.find(e.lower()) == -1:
                             unrelated = True
                             break
+
+                    if not configs['song_selection']['use_filtering']:
+                        unrelated = False
 
                     if not unrelated:
                         results.append(r)
@@ -695,7 +690,7 @@ def process_playlist():
     p('Waiting for threads to finish :' + str(running_threads))
     while running_threads != 0:
         print('... Running threads: ' + str(running_threads))
-        time.sleep(1)
+        time.sleep(2)
 
     p('Checking for removed files')
     diffed_files = diff_files(configs['download_dir'], configs['download_dir'], files=diff_file_paths)
