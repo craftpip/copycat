@@ -31,6 +31,7 @@ pip install bs4
 pip install eyed3
 pip install spotipy
 pip install youtube_dl
+pip install lxml
 ```
 
 Open `copycat.py` and make your customizations in the configs dict.
