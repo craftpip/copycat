@@ -1,0 +1,7 @@
+eyed3
+requests
+spotipy
+bs4
+beautifulsoup4
+youtube_dl
+youtube-search-python
