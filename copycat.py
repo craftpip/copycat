@@ -1,27 +1,22 @@
 import argparse
-import json
+import eyed3
 import os
+import requests
 import shutil
+import spotipy
 import sys
 import threading
 import time
-import urllib
-import urllib.request
-
-import eyed3
-import requests
-import spotipy
 import youtube_dl
-from bs4 import BeautifulSoup
 from spotipy.oauth2 import SpotifyClientCredentials
 from youtubesearchpython import VideosSearch
 
 configs = {
     'threads': 1,  # use this many downloads at once! super duper fast! consumes CPU like its cake!
-    'concurrent_connections': 2,  # threaded spotify connections,
-    'download_dir': './downloads/',  # Downloaded songs go here.
+    'concurrent_connections': 1,  # threaded spotify connections,
+    'download_dir': './downloads',  # Downloaded songs go here.
     'sync_download_dir': [  # Sync the downloaded songs with these directories
-        'G:/MUSIC/spotify/',
+        # 'G:/MUSIC/spotify/',
     ],
     'song_selection': {
         'use_filtering': False,
@@ -34,7 +29,7 @@ configs = {
         # ignore songs that contain these words,
         'min_percent_threshold': 60,  # if a song title is more than 5 words, check if % if it matches
         'diff_track_seconds_limit': 5,  # limit duration comparision for top 2 songs
-        'append_search_term': '',  # append some terms for search
+        'append_search_term': 'music audio',  # append some terms for search
     },
     'youtube_username': None,  # Cant download ? try this
     'youtube_password': None,  # 🙈
@@ -64,7 +59,7 @@ configs = {
 
 parser = argparse.ArgumentParser(description="🎷 Sync your Spotify music with your MP3 player!")
 parser.add_argument("-s", help="process playlist, download, and sync with target drive", action='store_true')
-parser.add_argument("-ds", help="sync downloaded files with your target drive only", action='store_true')
+parser.add_argument("-ds", help="sync downloaded files  ̰with your target drive only", action='store_true')
 # parser.add_argument("-r", help="loop the process after 2 hrs", action='store_true')
 parser.add_argument("-v", help="get more output?", action='store_true')
 parser.add_argument("-d", help="Developer use only, for debug", action='store_true')
@@ -149,6 +144,7 @@ def search_youtube(text_to_search):
             'video_id': item['id'],
             'duration': item['duration'],
             'duration_seconds': give_me_seconds(item['duration'])
+
         })
     # for item in list:
     #     if 'videoRenderer' in item:
@@ -265,7 +261,7 @@ def download_video(video_id, file_name):
         ydl_opts['password'] = configs['youtube_password']
 
     a = youtube_dl.YoutubeDL(ydl_opts)
-    l ='https://www.youtube.com/watch?v=' + video_id
+    l = 'https://www.youtube.com/watch?v=' + video_id
     p(l)
     v = a.download([l])
     return './' + file_name + '.webm'
@@ -493,8 +489,10 @@ def get_spotify_tracks(user_id, playlist_id):
 
             return ' '.join(composed_terms)
 
-        composed_term = compose_term(clean_string(artist_name), 2) + ' ' + compose_term(clean_string(track_name), 4)
-        search_term = composed_term + ' ' + configs['song_selection']['append_search_term']
+        # composed_term = compose_term(clean_string(artist_name), 2) + ' ' + compose_term(clean_string(track_name), 4)
+
+        search_term = clean_string(artist_name) + ' ' + clean_string(track_name)
+        search_term = search_term + ' ' + configs['song_selection']['append_search_term']
 
         track = {
             'name': track_name,
@@ -733,6 +731,7 @@ def process_playlist():
                 p(hr + ' ' + pre_text)
                 p2(str(running_threads) + 'T | ' + pre_text)
                 diff_file_paths.append(pl['path'] + track['path'])
+
                 file_path = folder_path + track['path']
                 p2(str(running_threads) + 'T | ' + pre_text + ': output to: ' + file_path)
                 if os.path.exists(file_path):
